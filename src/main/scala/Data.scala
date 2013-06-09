@@ -1,18 +1,29 @@
 package com.roundeights.shnappy
 
-import com.roundeights.foldout.CouchDB
+import com.roundeights.shnappy.component.Parser
+import com.roundeights.foldout._
+
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
+import scala.concurrent._
 
 /** @see Data */
 object Data {
 
-    /** The couch db connection */
-    private lazy val db = new Data(Env.env.couchDB match {
+    /** The private couch DB instance */
+    private val couchDB = Env.env.couchDB match {
         case Left( Env.CouchDB(host, port, ssl) )
             => CouchDB(host, port, ssl)
         case Right( Env.Cloudant(username, password) )
             => CouchDB.cloudant(username, password)
-    })
+    }
+
+    /** The couch db connection */
+    private lazy val db = new Data(
+        Env.env.database,
+        Parser.parser,
+        couchDB
+    )
 
     /** Returns a shared data instance */
     def apply(): Data = db
@@ -21,6 +32,22 @@ object Data {
 /**
  * Data access interface
  */
-class Data ( private val db: CouchDB ) {
+class Data ( database: String, private val parser: Parser, couch: CouchDB ) {
+
+    // Make sure the database exists
+    private val db = couch.db( database )
+    db.createNow
+
+    // Design interface
+    private val design = Await.result( db.designDir(
+        "pagesBySlug" -> "/couchdb/pagesBySlug"
+    ), Duration(3, "second") )
+
+    /** Returns a page */
+    def getPage ( slug: String ): Future[Option[Page]] = {
+        design.view("pagesBySlug").key(slug).limit(1).exec
+            .map( _.headOption.map(doc => Page(doc, parser)) )
+    }
+
 }
 

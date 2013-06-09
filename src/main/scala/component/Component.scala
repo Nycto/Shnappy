@@ -16,26 +16,6 @@ trait Component {
     def serialize: nObject
 }
 
-/**
- * A page level document
- */
-case class Content (
-    private val comps: Seq[Component]
-) {
-
-    /** Renders this component */
-    def render
-        ( renderer: Renderer )
-        ( implicit ctx: ExecutionContext )
-    : Future[String]
-        = Future.sequence( comps.map( _.render(renderer) ) ).map( _.mkString )
-
-    /** Serializes this component down to a JSON instance */
-    def serialize = nObject(
-        "components" -> comps.map( _.serialize )
-    )
-}
-
 /** @see Parser */
 object Parser {
 
@@ -73,10 +53,10 @@ class Parser ( parsers: Parser.CompParser* ) {
     }
 
     /** Parses a json string */
-    def parse ( json: String ): Content = parse( nParser.json(json) )
+    def parse ( json: String ): Seq[Component] = parse( nParser.json(json) )
 
     /** Parses a json element */
-    def parse ( element: nElement ): Content = {
+    def parse ( element: nElement ): Seq[Component] = {
 
         // Parses an individual component
         def parseComp( elem: nElement ): Component = {
@@ -89,7 +69,7 @@ class Parser ( parsers: Parser.CompParser* ) {
             ).parse( obj, parseComp )
         }
 
-        Content( element.asObject.ary("components").map( parseComp _ ) )
+        element.asArray.map( parseComp _ )
     }
 
 }

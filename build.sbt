@@ -19,6 +19,7 @@ libraryDependencies ++= Seq(
     "com.roundeights" %% "foldout" % "0.1",
     "com.roundeights" %% "skene" % "0.1",
     "com.roundeights" %% "vfunk" % "0.1",
+    "com.roundeights" %% "hasher" % "1.0.0",
     "org.fusesource.scalate" %% "scalate-wikitext" % "1.6.1",
     "org.fusesource.scalate" %% "scalate-page" % "1.6.1",
     "org.pegdown" % "pegdown" % "1.3.0",

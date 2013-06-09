@@ -19,7 +19,8 @@ object Env {
         val file = new File("/home/dotcloud/environment.json")
         file.isFile match {
             case false => Env(
-                couchDB = Left( CouchDB("localhost", 5984, false) )
+                couchDB = Left( CouchDB("localhost", 5984, false) ),
+                database = "shnappy"
             )
             case true => {
                 val json = nParser.json( file ).asObject
@@ -27,7 +28,8 @@ object Env {
                     couchDB = Right( Cloudant(
                         json.str("CLOUDANT_USER"),
                         json.str("CLOUDANT_PASSWORD")
-                    ) )
+                    ) ),
+                    database = json.str("COUCHDB_DATABASE")
                 )
             }
         }
@@ -39,6 +41,7 @@ object Env {
  * Environment information
  */
 case class Env (
-    couchDB: Either[Env.CouchDB, Env.Cloudant]
+    couchDB: Either[Env.CouchDB, Env.Cloudant],
+    database: String
 )
 
