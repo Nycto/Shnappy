@@ -36,5 +36,16 @@ class SiteEntry extends Skene {
         }
     }}
 
+    // Error handler
+    error( (request, response) => {
+        case _: SlugNotFound => renderer.renderPage( renderer("404") ).map {
+            html => response.notFound.html( html ).done
+        }
+
+        case _: Throwable => renderer.renderPage( renderer("500") ).map {
+            html => response.notFound.html( html ).done
+        }
+    })
+
 }
 
