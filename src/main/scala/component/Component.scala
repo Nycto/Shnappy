@@ -1,5 +1,6 @@
 package com.roundeights.shnappy.component
 
+import com.roundeights.shnappy.Renderer
 import com.roundeights.scalon.{nObject, nElement, nParser}
 
 /**
@@ -8,7 +9,7 @@ import com.roundeights.scalon.{nObject, nElement, nParser}
 trait Component {
 
     /** Renders this component */
-    def render: String
+    def render( renderer: Renderer ): String
 
     /** Serializes this component down to a JSON instance */
     def serialize: nObject
@@ -22,7 +23,8 @@ case class Content (
 ) {
 
     /** Renders this component */
-    def render: String = comps.map( _.render).mkString
+    def render( renderer: Renderer ): String
+        = comps.map( _.render(renderer) ).mkString
 
     /** Serializes this component down to a JSON instance */
     def serialize = nObject(

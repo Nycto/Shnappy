@@ -1,6 +1,7 @@
 package com.roundeights.shnappy.component
 
 import com.roundeights.scalon.nObject
+import com.roundeights.shnappy.Renderer
 
 
 /** @see Columns */
@@ -24,16 +25,17 @@ object Columns {
 case class Columns( private val columns: Seq[Component] ) extends Component {
 
     /** {@inheritDoc} */
-    override def render: String = {
-        val total = columns.length
-        columns.zipWithIndex.map {
-            case (column, index) => {
-                "<section class='column%dof%d'>%s</section>\n".format(
-                    index + 1, total, column.render
-                )
+    override def render( renderer: Renderer ): String = renderer(
+        "columns",
+        "total" -> columns.length,
+        "columns" -> columns.zipWithIndex.foldLeft(Map[String,Any]()) {
+            case (accum, (component, index)) => {
+                accum +
+                    ("index" -> index) +
+                    ("content" -> component.render(renderer))
             }
-        }.mkString
-    }
+        }
+    )
 
     /** {@inheritDoc} */
     override def serialize = nObject(
