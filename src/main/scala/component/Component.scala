@@ -14,8 +14,27 @@ trait Component {
     def serialize: nObject
 }
 
+/**
+ * A page level document
+ */
+case class Content (
+    private val comps: Seq[Component]
+) {
+
+    /** Renders this component */
+    def render: String = comps.map( _.render).mkString
+
+    /** Serializes this component down to a JSON instance */
+    def serialize = nObject(
+        "components" -> comps.map( _.serialize )
+    )
+}
+
 /** @see Parser */
 object Parser {
+
+    /** The signature for a nested parser */
+    type Nested = (nElement) => Component
 
     /** Parses an individual component */
     trait CompParser {
@@ -24,7 +43,7 @@ object Parser {
         def name: String
 
         /** Parses a serialized component */
-        def parse( obj: nObject, nested: Parser ): Component
+        def parse( obj: nObject, nested: Nested ): Component
     }
 
 
@@ -48,18 +67,23 @@ class Parser ( parsers: Parser.CompParser* ) {
     }
 
     /** Parses a json string */
-    def parse ( json: String ): Seq[Component] = parse( nParser.json(json) )
+    def parse ( json: String ): Content = parse( nParser.json(json) )
 
     /** Parses a json element */
-    def parse ( element: nElement ): Seq[Component] = {
-        element.asArray.map( _.asObject ).map(obj => {
+    def parse ( element: nElement ): Content = {
+
+        // Parses an individual component
+        def parseComp( elem: nElement ): Component = {
+            val obj = elem.asObject
             val compType = obj.str("type")
             parserIndex.get( compType ).getOrElse(
                 throw new NoSuchElementException(
                     "Invalid component type: %s".format(compType)
                 )
-            ).parse( obj, this )
-        })
+            ).parse( obj, parseComp )
+        }
+
+        Content( element.asObject.ary("components").map( parseComp _ ) )
     }
 
 }

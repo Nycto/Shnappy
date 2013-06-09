@@ -17,7 +17,7 @@ object Markdown {
         override val name = "markdown"
 
         /** {@inheritDoc} */
-        override def parse( obj: nObject, nested: Parser ): Component
+        override def parse( obj: nObject, nested: Parser.Nested ): Component
             = new Markdown( obj.str("content") )
     }
 }

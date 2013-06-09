@@ -13,9 +13,8 @@ object Columns {
         override val name = "columns"
 
         /** {@inheritDoc} */
-        override def parse( obj: nObject, nested: Parser ): Component = {
-            new Columns( nested.parse( obj.ary("content") ) )
-        }
+        override def parse( obj: nObject, nested: Parser.Nested ): Component
+            = new Columns( obj.ary("content").map( nested ) )
     }
 }
 
