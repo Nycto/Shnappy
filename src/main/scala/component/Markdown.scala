@@ -10,7 +10,6 @@ object Markdown {
     /** A shared markdown parser */
     lazy protected val processor = new PegDownProcessor( Extensions.ALL )
 
-
     /** Parses a markdown instance */
     class Parse extends Parser.CompParser {
 
@@ -21,7 +20,6 @@ object Markdown {
         override def parse( obj: nObject, nested: Parser ): Component
             = new Markdown( obj.str("content") )
     }
-
 }
 
 /**
@@ -30,7 +28,11 @@ object Markdown {
 class Markdown( private val markdown: String ) extends Component {
 
     /** {@inheritDoc} */
-    def render: String = Markdown.processor.markdownToHtml( markdown )
+    override def render: String = Markdown.processor.markdownToHtml( markdown )
+
+    /** {@inheritDoc} */
+    override def serialize
+        = nObject( "type" -> "markdown", "content" -> markdown )
 }
 
 

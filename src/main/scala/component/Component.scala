@@ -9,6 +9,9 @@ trait Component {
 
     /** Renders this component */
     def render: String
+
+    /** Serializes this component down to a JSON instance */
+    def serialize: nObject
 }
 
 /** @see Parser */
