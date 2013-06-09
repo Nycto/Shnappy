@@ -10,9 +10,18 @@ object Markdown {
     /** A shared markdown parser */
     lazy protected val processor = new PegDownProcessor( Extensions.ALL )
 
-    /** Parses a markdown component */
-    def parse ( obj: nObject, nested: Parser )
-        = new Markdown( obj.str("content") )
+
+    /** Parses a markdown instance */
+    class Parse extends Parser.CompParser {
+
+        /** {@inheritDoc} */
+        override val name = "markdown"
+
+        /** {@inheritDoc} */
+        override def parse( obj: nObject, nested: Parser ): Component
+            = new Markdown( obj.str("content") )
+    }
+
 }
 
 /**
