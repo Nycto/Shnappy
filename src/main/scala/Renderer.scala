@@ -1,5 +1,6 @@
 package com.roundeights.shnappy
 
+import scala.concurrent.Future
 import org.fusesource.scalate._
 import java.io.File
 
@@ -16,6 +17,11 @@ class Renderer {
     def apply ( template: String, data: (String, Any)* ): String = {
         val path = new File(root, template + ".mustache")
         engine.layout( path.toString, Map(data:_*) )
+    }
+
+    /** Renders the page level template */
+    def renderPage ( content: String ): Future[String] = {
+        Future.successful( apply( "page", "content" -> content ) )
     }
 
 }

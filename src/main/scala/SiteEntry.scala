@@ -28,8 +28,11 @@ class SiteEntry extends Skene {
 
             // Render the page components
             rendered <- recover.fromFuture( page.render(renderer) )
+
+            // The rendered page content
+            html <- renderer.renderPage( rendered )
         } {
-            response.ok.html( rendered ).done
+            response.ok.html( html ).done
         }
     }}
 
