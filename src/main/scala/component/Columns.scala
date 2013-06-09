@@ -1,5 +1,6 @@
 package com.roundeights.shnappy.component
 
+import scala.concurrent.Future
 import com.roundeights.scalon.nObject
 import com.roundeights.shnappy.Renderer
 
@@ -25,17 +26,19 @@ object Columns {
 case class Columns( private val columns: Seq[Component] ) extends Component {
 
     /** {@inheritDoc} */
-    override def render( renderer: Renderer ): String = renderer(
-        "columns",
-        "total" -> columns.length,
-        "columns" -> columns.zipWithIndex.foldLeft(Map[String,Any]()) {
-            case (accum, (component, index)) => {
-                accum +
-                    ("index" -> index) +
-                    ("content" -> component.render(renderer))
+    override def render( renderer: Renderer ): Future[String] = {
+        Future.successful( renderer(
+            "columns",
+            "total" -> columns.length,
+            "columns" -> columns.zipWithIndex.foldLeft(Map[String,Any]()) {
+                case (accum, (component, index)) => {
+                    accum +
+                        ("index" -> index) +
+                        ("content" -> component.render(renderer))
+                }
             }
-        }
-    )
+        ))
+    }
 
     /** {@inheritDoc} */
     override def serialize = nObject(

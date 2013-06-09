@@ -1,5 +1,6 @@
 package com.roundeights.shnappy.component
 
+import scala.concurrent.{Future, ExecutionContext}
 import com.roundeights.shnappy.Renderer
 import com.roundeights.scalon.{nObject, nElement, nParser}
 
@@ -9,7 +10,7 @@ import com.roundeights.scalon.{nObject, nElement, nParser}
 trait Component {
 
     /** Renders this component */
-    def render( renderer: Renderer ): String
+    def render( renderer: Renderer ): Future[String]
 
     /** Serializes this component down to a JSON instance */
     def serialize: nObject
@@ -23,8 +24,11 @@ case class Content (
 ) {
 
     /** Renders this component */
-    def render( renderer: Renderer ): String
-        = comps.map( _.render(renderer) ).mkString
+    def render
+        ( renderer: Renderer )
+        ( implicit ctx: ExecutionContext )
+    : Future[String]
+        = Future.sequence( comps.map( _.render(renderer) ) ).map( _.mkString )
 
     /** Serializes this component down to a JSON instance */
     def serialize = nObject(
