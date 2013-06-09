@@ -25,7 +25,7 @@ object Markdown {
 /**
  * Renders markdown
  */
-class Markdown( private val markdown: String ) extends Component {
+case class Markdown( private val markdown: String ) extends Component {
 
     /** {@inheritDoc} */
     override def render: String = Markdown.processor.markdownToHtml( markdown )
