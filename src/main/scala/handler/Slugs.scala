@@ -1,13 +1,14 @@
-package com.roundeights.shnappy
+package com.roundeights.shnappy.handler
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.roundeights.skene._
 import com.roundeights.attempt._
+import com.roundeights.shnappy._
 
-class SiteEntry extends Skene {
-
-    /** Thrown when a page doesn't exist */
-    class SlugNotFound extends Exception
+/**
+ * Handles requests to miscellanious pages
+ */
+class SlugHandler extends Skene {
 
     /** A shared renderer */
     private val renderer = new Renderer
@@ -23,7 +24,7 @@ class SiteEntry extends Skene {
 
             // Make sure the page exists
             page <- TryTo( pageOpt ) onFail {
-                recover.orRethrow( new SlugNotFound )
+                recover.orRethrow( new SiteEntry.NotFound )
             }
 
             // Render the page components
@@ -36,16 +37,6 @@ class SiteEntry extends Skene {
         }
     }}
 
-    // Error handler
-    error( (request, response) => {
-        case _: SlugNotFound => renderer.renderPage( renderer("404") ).map {
-            html => response.notFound.html( html ).done
-        }
-
-        case _: Throwable => renderer.renderPage( renderer("500") ).map {
-            html => response.notFound.html( html ).done
-        }
-    })
-
 }
+
 

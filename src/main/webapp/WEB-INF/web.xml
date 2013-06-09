@@ -3,11 +3,11 @@
  "http://java.sun.com/dtd/web-app_2_3.dtd" >
 
 <web-app>
-    <display-name>LungFish</display-name>
+    <display-name>Shnappy</display-name>
 
     <servlet>
         <servlet-name>Site</servlet-name>
-        <servlet-class>com.roundeights.shnappy.SiteEntry</servlet-class>
+        <servlet-class>com.roundeights.shnappy.handler.SiteEntry</servlet-class>
         <load-on-startup>1</load-on-startup>
     </servlet>
 
