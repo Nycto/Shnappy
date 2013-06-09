@@ -30,7 +30,8 @@ object Parser {
 
     /** The shared parser */
     val parser = new Parser(
-         new Markdown.Parse
+         new Markdown.Parse,
+         new Columns.Parse
     )
 }
 
