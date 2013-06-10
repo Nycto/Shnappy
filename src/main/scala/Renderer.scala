@@ -24,7 +24,7 @@ class Renderer ( private val data: Data ) {
         ( content: String )
         ( implicit ctx: ExecutionContext )
     : Future[String] = {
-        data.getNav.map( nav => apply( "page",
+        data.getNavLinks.map( nav => apply( "page",
             "content" -> content,
             "nav" -> nav.map( _.toMap )
         ))

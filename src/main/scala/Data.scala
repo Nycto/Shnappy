@@ -58,8 +58,13 @@ class Data ( database: String, private val parser: Parser, couch: CouchDB ) {
     }
 
     /** Returns the index */
-    def getNav: Future[Seq[Nav]] = {
-        design.view("nav").asc.exec.map( _.map(doc => Page(doc, parser)) )
+    def getNavLinks: Future[Seq[NavLink]] = {
+        design.view("nav").asc.exec.map(_.foldRight( List[NavLink]() ){
+            (doc, accum) => Page(doc, parser).navLink match {
+                case Some(link) => link :: accum
+                case None => accum
+            }
+        })
     }
 
 }

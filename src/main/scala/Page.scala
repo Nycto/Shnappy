@@ -35,7 +35,7 @@ case class Page (
     private val content: Seq[Component],
     private val markedIndex: Option[Date],
     private val navSort: Option[SortKey]
-) extends Nav {
+) {
 
     /** Renders this component */
     def render
@@ -44,14 +44,8 @@ case class Page (
     : Future[String]
         = Future.sequence( content.map( _.render(renderer) ) ).map(_.mkString)
 
-    /** {@inheritDoc} */
-    override def linkUrl: String = "/" + slug
-
-    /** {@inheritDoc} */
-    override def linkText: String = title
-
-    /** {@inheritDoc} */
-    override def sortKey: SortKey = navSort.get
-
+    /** Returns a link to this page */
+    def navLink: Option[NavLink]
+        = navSort.map(sort => NavLink("/" + slug, title, sort))
 }
 

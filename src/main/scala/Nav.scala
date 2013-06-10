@@ -16,19 +16,10 @@ case class SortKey ( val keys: IndexedSeq[Int] ) {
 
 }
 
-/** Nav objects have the ability to produce a link and be sorted */
-trait Nav {
-
-    /** The URL for this link */
-    def linkUrl: String
-
-    /** The text for this link */
-    def linkText: String
-
-    /** The sort order of this link */
-    def sortKey: SortKey
+/** A link in the navigation */
+case class NavLink ( val url: String, val text: String, sort: SortKey ) {
 
     /** Returns this nav instance is a map of data */
-    def toMap: Map[String, String] = Map("url" -> linkUrl, "text" -> linkText)
+    def toMap: Map[String, String] = Map("url" -> url, "text" -> text)
 }
 
