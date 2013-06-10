@@ -13,7 +13,7 @@ import com.roundeights.shnappy._
 class SlugHandler extends Skene {
 
     /** A shared renderer */
-    private val renderer = new Renderer
+    private val renderer = new Renderer( Data() )
 
     /** Renders the given page */
     private def showPage (
@@ -32,7 +32,7 @@ class SlugHandler extends Skene {
             rendered <- recover.fromFuture( page.render(renderer) )
 
             // The rendered page content
-            html <- renderer.renderPage( rendered )
+            html <- recover.fromFuture( renderer.renderPage( rendered ) )
         } {
             response.ok.html( html ).done
         }

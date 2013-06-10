@@ -17,7 +17,7 @@ object SiteEntry {
 class SiteEntry extends Skene {
 
     /** A shared renderer */
-    private val renderer = new Renderer
+    private val renderer = new Renderer( Data() )
 
     // Attempt to render this as a slug
     delegate( new SlugHandler )

@@ -41,7 +41,8 @@ class Data ( database: String, private val parser: Parser, couch: CouchDB ) {
     // Design interface
     private val design = Await.result( db.designDir(
         "pagesBySlug" -> "/couchdb/pagesBySlug",
-        "pagesByIndex" -> "/couchdb/pagesByIndex"
+        "pagesByIndex" -> "/couchdb/pagesByIndex",
+        "nav" -> "/couchdb/nav"
     ), Duration(3, "second") )
 
     /** Returns a page */
@@ -54,6 +55,11 @@ class Data ( database: String, private val parser: Parser, couch: CouchDB ) {
     def getIndex: Future[Option[Page]] = {
         design.view("pagesByIndex").limit(1).desc.exec
             .map( _.headOption.map(doc => Page(doc, parser)) )
+    }
+
+    /** Returns the index */
+    def getNav: Future[Seq[Nav]] = {
+        design.view("nav").asc.exec.map( _.map(doc => Page(doc, parser)) )
     }
 
 }

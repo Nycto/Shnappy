@@ -10,6 +10,13 @@
         <meta name="viewport" content="width=device-width">
     </head>
     <body>
+        <nav>
+            <ul>
+                {{#nav}}
+                    <li><a href="{{url}}">{{text}}</a></li>
+                {{/nav}}
+            </ul>
+        </nav>
         {{& content}}
     </body>
 </html>

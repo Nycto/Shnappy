@@ -10,7 +10,7 @@ object Page {
 
     /** Creates a new Page */
     def apply ( title: String, slug: String, content: Seq[Component] )
-        = new Page( UUID.randomUUID, None, title, slug, content, None )
+        = new Page( UUID.randomUUID, None, title, slug, content, None, None )
 
     /** Creates a Page from a document and a parser */
     def apply ( doc: Doc, parser: Parser ) = new Page(
@@ -19,9 +19,9 @@ object Page {
         doc.str("title"),
         doc.str("slug"),
         parser.parse( doc.ary("components") ),
-        doc.str_?("markedIndex").map( DateGen.parse _ )
+        doc.str_?("markedIndex").map( DateGen.parse _ ),
+        doc.str_?("navSort").map( value => new SortKey(value) )
     )
-
 }
 
 /**
@@ -33,8 +33,9 @@ case class Page (
     val title: String,
     val slug: String,
     private val content: Seq[Component],
-    private val markedIndex: Option[Date]
-) {
+    private val markedIndex: Option[Date],
+    private val navSort: Option[SortKey]
+) extends Nav {
 
     /** Renders this component */
     def render
@@ -42,6 +43,15 @@ case class Page (
         ( implicit ctx: ExecutionContext )
     : Future[String]
         = Future.sequence( content.map( _.render(renderer) ) ).map(_.mkString)
+
+    /** {@inheritDoc} */
+    override def linkUrl: String = "/" + slug
+
+    /** {@inheritDoc} */
+    override def linkText: String = title
+
+    /** {@inheritDoc} */
+    override def sortKey: SortKey = navSort.get
 
 }
 

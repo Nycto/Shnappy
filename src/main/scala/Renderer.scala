@@ -1,11 +1,11 @@
 package com.roundeights.shnappy
 
-import scala.concurrent.Future
+import scala.concurrent.{Future, ExecutionContext}
 import org.fusesource.scalate._
 import java.io.File
 
 /** A renderer is used to translate data into HTML */
-class Renderer {
+class Renderer ( private val data: Data ) {
 
     /** The templating engine */
     private val engine = new TemplateEngine
@@ -20,8 +20,14 @@ class Renderer {
     }
 
     /** Renders the page level template */
-    def renderPage ( content: String ): Future[String] = {
-        Future.successful( apply( "page", "content" -> content ) )
+    def renderPage
+        ( content: String )
+        ( implicit ctx: ExecutionContext )
+    : Future[String] = {
+        data.getNav.map( nav => apply( "page",
+            "content" -> content,
+            "nav" -> nav.map( _.toMap )
+        ))
     }
 
 }
