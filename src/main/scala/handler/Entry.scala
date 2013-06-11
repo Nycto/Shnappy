@@ -30,8 +30,11 @@ class SiteEntry extends Skene {
             }
         }
 
-        case _: Throwable => renderer.renderPage( renderer("500") ).map {
-            html => response.notFound.html( html ).done
+        case err: Throwable => {
+            println( err )
+            renderer.renderPage( renderer("500") ).map {
+                html => response.notFound.html( html ).done
+            }
         }
     })
 
