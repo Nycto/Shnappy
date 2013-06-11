@@ -51,6 +51,9 @@ class Data ( database: String, private val parser: Parser, couch: CouchDB ) {
             .map( _.headOption.map(doc => Page(doc, parser)) )
     }
 
+    /** Saves a page */
+    def savePage ( page: Page ): Future[Written] = db.put( page )
+
     /** Returns the index */
     def getIndex: Future[Option[Page]] = {
         design.view("pagesByIndex").limit(1).desc.exec
