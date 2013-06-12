@@ -64,5 +64,13 @@ class Data ( database: String, private val parser: Parser, couch: CouchDB ) {
     def getNavLinks: Future[Seq[NavLink]]
         = design.view("nav").asc.exec.map(rows => NavLink.parse(rows, parser))
 
+    /** Returns overall info for the site */
+    def getSiteInfo: Future[SiteInfo] = {
+        db.get( SiteInfo.couchKey ).map( _ match {
+            case Some(doc) => SiteInfo(doc)
+            case None => new SiteInfo
+        })
+    }
+
 }
 

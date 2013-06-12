@@ -14,20 +14,30 @@ class Renderer ( private val data: Data ) {
     val root = new File( System.getProperty("user.dir") + "/templates" )
 
     /** Renders the given component type with the given data */
-    def apply ( template: String, data: (String, Any)* ): String = {
+    def apply ( template: String, data: Map[String, Any] ): String = {
         val path = new File(root, template + ".mustache")
-        engine.layout( path.toString, Map(data:_*) )
+        engine.layout( path.toString, data )
     }
+
+    /** Renders the given component type with the given data */
+    def apply ( template: String, data: (String, Any)* ): String
+        = apply( template, Map(data:_*) )
 
     /** Renders the page level template */
     def renderPage
         ( content: String )
         ( implicit ctx: ExecutionContext )
     : Future[String] = {
-        data.getNavLinks.map( nav => apply( "page",
-            "content" -> content,
-            "nav" -> nav.map( _.toMap )
-        ))
+        val linksFuture = data.getNavLinks
+        val infoFuture = data.getSiteInfo
+
+        linksFuture.flatMap( links => infoFuture.map( info => {
+            apply( "page",
+                info.toMap +
+                ("content" -> content) +
+                ("nav" -> links.map( _.toMap ))
+            )
+        }))
     }
 
 }
