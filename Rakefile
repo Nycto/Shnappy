@@ -1,0 +1,73 @@
+#
+# Build definition
+#
+
+
+# Asks for user input and returns the result
+def getInput ( question )
+    puts question
+    response = STDIN.gets.strip
+    puts
+    response
+end
+
+# Asks the user a yes or no question
+def getYesOrNo ( question )
+    response = getInput("#{question} (y/n)")
+
+    if response.downcase == "y"
+        true
+    elsif response.downcase == "n"
+        false
+    else
+        puts "Invalid response\n"
+        getYesOrNo( question )
+    end
+end
+
+
+# Initializes the dotcloud environment
+task :setup do
+
+    # Make sure the dotcloud client is installed
+    unless system("which dotcloud > /dev/null")
+        puts "Dotcloud CLI client not found. Installing..."
+        sh("sudo easy_install pip && sudo pip install dotcloud")
+        puts
+    end
+
+    name = getInput("Enter the dotCloud project name:")
+
+    if getYesOrNo("Does this project already exist?")
+        sh("cd build; dotcloud connect #{name}")
+    else
+        sh("cd build; dotcloud create #{name}")
+    end
+
+end
+
+
+# Cleans out all build artifacts
+task :clean do
+    sh("sbt clean")
+end
+
+# Builds the java WAR file
+task :package do
+    sh("sbt package-war")
+
+    wars = Dir.glob('target/scala-*/*.war')
+    if wars.length == 0
+        throw "Could not locate packaged war file"
+    elsif wars.length > 1
+        throw "Found more than 1 war file. Consider doing a `rake clean`"
+    end
+
+    FileUtils.cp( wars[0], 'build/ROOT.war' )
+end
+
+# Deploys this site out to dotcloud
+task :deploy => [ :package ] do
+    sh("cd build; dotcloud push")
+end
+
