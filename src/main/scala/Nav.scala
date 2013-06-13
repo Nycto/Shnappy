@@ -2,6 +2,7 @@ package com.roundeights.shnappy
 
 import com.roundeights.shnappy.component.Parser
 import com.roundeights.foldout.{Doc, Documentable}
+import com.roundeights.vfunk.{Validate, Filter, TextField}
 import java.util.UUID
 
 /** Represents the sort position of an element in the Nav */
@@ -45,10 +46,35 @@ object NavLink {
         }
     }
 
+    /** Creates a new NavLink */
+    def apply( url: String, text: String, sort: SortKey )
+        = new NavLink(url, text, sort)
+
+    /** Filter and validation rules for a link title */
+    private[NavLink] val text = TextField( "text",
+        Filter.chain( Filter.printable, Filter.trim ),
+        Validate.notEmpty
+    )
+
+    /** Filter and validation rules for a link URL */
+    private[NavLink] val url = TextField( "url",
+        Filter.chain( Filter.printable, Filter.trim ),
+        Validate.and( Validate.notEmpty, Validate.noWhitespace )
+    )
+
 }
 
 /** A link in the navigation */
-case class NavLink ( val url: String, val text: String, val sort: SortKey ) {
+class NavLink ( rawUrl: String, rawText: String, val sort: SortKey ) {
+
+    /** The filtered and validated link URL */
+    val url = NavLink.url.process( rawUrl ).require.value
+
+    /** The filtered and validated link text */
+    val text = NavLink.text.process( rawText ).require.value
+
+    /** {@inheritDoc} */
+    override def toString = "NavLink(%s, %s, %s)".format(url, text, sort)
 
     /** Returns this nav instance is a map of data */
     def toMap: Map[String, String] = Map("url" -> url, "text" -> text)

@@ -3,6 +3,7 @@ package com.roundeights.shnappy
 import com.roundeights.shnappy.component.{Component, Parser}
 import com.roundeights.foldout.{Doc, Documentable}
 import com.roundeights.scalon.nList
+import com.roundeights.vfunk.{Validate, Filter, TextField}
 import scala.concurrent.{Future, ExecutionContext}
 import java.util.{UUID, Date}
 
@@ -23,6 +24,21 @@ object Page {
         doc.str_?("markedIndex").map( DateGen.parse _ ),
         doc.str_?("navSort").map( value => new SortKey(value) )
     )
+
+    /** Filter and validation rules for a slug */
+    private[Page] val slug = TextField( "slug",
+        Filter.chain( Filter.printable, Filter.trim ),
+        Validate.and(
+            Validate.notEmpty,
+            Validate.chars('a' to 'z', 'A' to 'Z', '0' to '9', Seq('_', '-'))
+        )
+    )
+
+    /** Filter and validation rules for a page title */
+    private[Page] val title = TextField( "title",
+        Filter.chain( Filter.printable, Filter.trim ),
+        Validate.notEmpty
+    )
 }
 
 /**
@@ -31,12 +47,18 @@ object Page {
 case class Page (
     private val id: UUID,
     private val revision: Option[String],
-    val title: String,
-    val slug: String,
+    rawTitle: String,
+    rawSlug: String,
     val content: Seq[Component],
     private val markedIndex: Option[Date],
     private val navSort: Option[SortKey]
 ) extends Documentable {
+
+    /** The filtered and validated page title */
+    val title = Page.title.process( rawTitle ).require.value
+
+    /** The filtered and validated slug */
+    val slug = Page.slug.process( rawSlug ).require.value
 
     /** Renders this component */
     def render
