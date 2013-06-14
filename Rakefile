@@ -31,13 +31,16 @@ task :setup do
 
     # Make sure the dotcloud client is installed
     unless system("which dotcloud > /dev/null")
-        puts "Dotcloud CLI client not found. Installing..."
-        sh("sudo easy_install pip && sudo pip install dotcloud")
+        puts "DotCloud command line interface not found!"
+        puts "Fixing this error might be as easy as running the following:"
         puts
+        puts "    sudo easy_install pip && sudo pip install dotcloud"
+        puts
+        fail "Command not found: dotcloud"
     end
 
+    # Fetch dotcloud account information
     name = getInput("Enter the dotCloud project name:")
-
     if getYesOrNo("Does this project already exist?")
         sh("cd build; dotcloud connect #{name}")
     else
@@ -45,6 +48,7 @@ task :setup do
     end
     puts
 
+    # Fetch cloudant database information
     username = getInput("Please enter your Cloudant user name:")
     apiKey = getInput("Please enter your Cloudant API key:")
     password = getInput("Please enter the password for that Cloudant API key:")
