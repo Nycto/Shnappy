@@ -12,7 +12,7 @@ object Env {
     case class CouchDB ( host: String, port: Int, ssl: Boolean )
 
     /** Cloudant configuration */
-    case class Cloudant ( username: String, password: String )
+    case class Cloudant ( username: String, apiKey: String, password: String )
 
     /** The shared environment configuration */
     lazy val env = {
@@ -26,8 +26,9 @@ object Env {
                 val json = nParser.json( file ).asObject
                 Env(
                     couchDB = Right( Cloudant(
-                        json.str("CLOUDANT_USER"),
-                        json.str("CLOUDANT_PASSWORD")
+                        json.str("CLOUDANT_KEY"),
+                        json.str("CLOUDANT_PASSWORD"),
+                        json.str("CLOUDANT_USER")
                     ) ),
                     database = json.str("COUCHDB_DATABASE")
                 )

@@ -43,6 +43,17 @@ task :setup do
     else
         sh("cd build; dotcloud create #{name}")
     end
+    puts
+
+    username = getInput("Please enter your Cloudant user name:")
+    apiKey = getInput("Please enter your Cloudant API key:")
+    password = getInput("Please enter the password for that Cloudant API key:")
+    database = getInput("Please enter your Cloudant database name:")
+    sh("cd build; dotcloud env set " +
+       "CLOUDANT_USER=#{username} " +
+       "CLOUDANT_KEY=#{apiKey} " +
+       "CLOUDANT_PASSWORD=#{password} " +
+       "COUCHDB_DATABASE=#{database}")
 
 end
 

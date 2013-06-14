@@ -14,8 +14,8 @@ object Data {
     private val couchDB = Env.env.couchDB match {
         case Left( Env.CouchDB(host, port, ssl) )
             => CouchDB(host, port, ssl)
-        case Right( Env.Cloudant(username, password) )
-            => CouchDB.cloudant(username, password)
+        case Right( Env.Cloudant(username, apiKey, password) )
+            => CouchDB.cloudant( apiKey, password, Some(username) )
     }
 
     /** The couch db connection */
