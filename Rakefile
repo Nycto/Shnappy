@@ -59,6 +59,8 @@ task :setup do
        "CLOUDANT_PASSWORD=#{password} " +
        "COUCHDB_DATABASE=#{database}")
 
+    # Reduce the WWW memory usage
+    sh("cd build; dotcloud scale www:memory=96M")
 end
 
 
