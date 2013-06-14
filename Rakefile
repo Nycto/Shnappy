@@ -2,6 +2,11 @@
 # Build definition
 #
 
+require 'rubygems'
+require 'set'
+require 'sass'
+require 'pp'
+
 
 # Asks for user input and returns the result
 def getInput ( question )
@@ -64,10 +69,45 @@ task :setup do
 end
 
 
+
+# Compile the Sass
+task :sass do
+    puts "Compiling Sass..."
+    sh("mkdir -p build/assets/css")
+
+    includes = ["css"] + Gem::Specification.inject([]) do |memo, gem|
+        dir = gem.gem_dir + "/app/assets/stylesheets"
+        memo.push(dir) if File.exists?(dir)
+        memo
+    end
+
+    puts "Sass include dirs:"
+    pp(includes)
+
+    Dir.glob('css/*')
+        .select{ |file| [".sass", ".scss"].to_set.include?(File.extname(file)) }
+        .reject{ |file| File.basename(file).start_with?("_") }
+        .map do |file|
+            withoutExt = file.chomp( File.extname(file) )
+            compileTo = "build/assets/#{withoutExt}.css"
+
+            puts "Compiling #{file} to #{compileTo}"
+
+            engine = Sass::Engine.for_file(
+                file,
+                :syntax => :scss, :full_exception => true,
+                :load_paths => includes
+            )
+
+            File.open(compileTo, 'w') { |file| file.write(engine.render) }
+        end
+end
+
 # Cleans out all build artifacts
 task :clean do
     sh("sbt clean")
     FileUtils.rm_rf( 'build/templates' )
+    FileUtils.rm_rf( 'build/assets' )
     FileUtils.rm( 'build/ROOT.war' )
 end
 
@@ -87,7 +127,7 @@ task :package do
 end
 
 # Deploys this site out to dotcloud
-task :deploy => [ :package ] do
+task :deploy => [ :package, :sass ] do
     sh("cd build; dotcloud push")
 end
 

@@ -18,4 +18,5 @@ build/*
 # dotCloud environment config
 environment.json
 
+# Sass cache
 .sass-cache
