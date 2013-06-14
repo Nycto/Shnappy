@@ -13,7 +13,7 @@ import com.roundeights.shnappy._
 class SlugHandler extends Skene {
 
     /** A shared renderer */
-    private val renderer = new Renderer( Data() )
+    private val renderer = new Renderer( Env.env, Data() )
 
     /** Renders the given page */
     private def showPage (

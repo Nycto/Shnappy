@@ -1,7 +1,5 @@
 www:
     type: java
     config:
-        java_initial_heap_size: 32
-        java_maximum_heap_size: 96
-        java_maximum_permgen_size: 32
+        jetty_version: jetty-8
 

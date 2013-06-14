@@ -12,10 +12,10 @@ object Data {
 
     /** The private couch DB instance */
     private val couchDB = Env.env.couchDB match {
-        case Left( Env.CouchDB(host, port, ssl) )
-            => CouchDB(host, port, ssl)
-        case Right( Env.Cloudant(username, apiKey, password) )
-            => CouchDB.cloudant( apiKey, password, Some(username) )
+        case Left( Env.CouchDB(host, port, ssl) ) => CouchDB(host, port, ssl)
+        case Right( conf ) => CouchDB.cloudant(
+            conf.apiKey, conf.password, Some(conf.username)
+        )
     }
 
     /** The couch db connection */

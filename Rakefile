@@ -67,6 +67,8 @@ end
 # Cleans out all build artifacts
 task :clean do
     sh("sbt clean")
+    FileUtils.rm_rf( 'build/templates' )
+    FileUtils.rm( 'build/ROOT.war' )
 end
 
 # Builds the java WAR file
@@ -81,6 +83,7 @@ task :package do
     end
 
     FileUtils.cp( wars[0], 'build/ROOT.war' )
+    FileUtils.cp_r( 'templates', 'build/' )
 end
 
 # Deploys this site out to dotcloud
