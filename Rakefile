@@ -31,19 +31,23 @@ def getYesOrNo ( question )
 end
 
 
-# Initializes the dotcloud environment
-task :setup do
-
-    # Make sure the dotcloud client is installed
+# Requires that the dotcloud command line interface is installed
+task :dotcloudcli do
     unless system("which dotcloud > /dev/null")
         puts "DotCloud command line interface not found!"
         puts "Fixing this error might be as easy as running the following:"
         puts
-        puts "    sudo easy_install pip && sudo pip install dotcloud"
+        puts "    sudo apt-get install python-setuptools python-dev build-essential;"
+        puts "    sudo easy_install pip && sudo pip install dotcloud;"
+        puts "    dotcloud setup;"
         puts
         fail "Command not found: dotcloud"
     end
+end
 
+
+# Configures the dotcloud project
+task :dotcloud => [ :dotcloudcli ] do
     # Fetch dotcloud account information
     name = getInput("Enter the dotCloud project name:")
     if getYesOrNo("Does this project already exist?")
@@ -52,8 +56,11 @@ task :setup do
         sh("cd build; dotcloud create #{name}")
     end
     puts
+end
 
-    # Fetch cloudant database information
+
+# Configures the cloudant configuration
+task :cloudant => [ :dotcloudcli ] do
     username = getInput("Please enter your Cloudant user name:")
     apiKey = getInput("Please enter your Cloudant API key:")
     password = getInput("Please enter the password for that Cloudant API key:")
@@ -63,6 +70,12 @@ task :setup do
        "CLOUDANT_KEY=#{apiKey} " +
        "CLOUDANT_PASSWORD=#{password} " +
        "COUCHDB_DATABASE=#{database}")
+    puts
+end
+
+
+# Initializes the dotcloud environment
+task :setup => [ :dotcloud, :cloudant ] do
 
     # Reduce the WWW memory usage
     sh("cd build; dotcloud scale www:memory=256M")
@@ -103,6 +116,7 @@ task :sass do
         end
 end
 
+
 # Cleans out all build artifacts
 task :clean do
     sh("sbt clean")
@@ -110,6 +124,7 @@ task :clean do
     FileUtils.rm_rf( 'build/assets' )
     FileUtils.rm( 'build/ROOT.war' )
 end
+
 
 # Builds the java WAR file
 task :package do
@@ -126,8 +141,9 @@ task :package do
     FileUtils.cp_r( 'templates', 'build/' )
 end
 
+
 # Deploys this site out to dotcloud
-task :deploy => [ :package, :sass ] do
+task :deploy => [ :dotcloudcli, :package, :sass ] do
     sh("cd build; dotcloud push")
 end
 
