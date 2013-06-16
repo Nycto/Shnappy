@@ -2,4 +2,7 @@ www:
     type: java
     config:
         jetty_version: jetty-8
+        java_initial_heap_size: 64
+        java_maximum_heap_size: 192
+        java_maximum_permgen_size: 64
 

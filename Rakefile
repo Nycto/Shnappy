@@ -60,7 +60,7 @@ task :setup do
        "COUCHDB_DATABASE=#{database}")
 
     # Reduce the WWW memory usage
-    sh("cd build; dotcloud scale www:memory=96M")
+    sh("cd build; dotcloud scale www:memory=256M")
 end
 
 
