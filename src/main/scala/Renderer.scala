@@ -1,22 +1,47 @@
 package com.roundeights.shnappy
 
 import scala.concurrent.{Future, ExecutionContext}
-import org.fusesource.scalate._
+import scala.collection.JavaConversions
+
+import com.github.jknack.handlebars.io.FileTemplateLoader
+import com.github.jknack.handlebars.{Handlebars, Context}
 import java.io.File
+import java.util.{HashMap => JavaMap}
+
 
 /** A renderer is used to translate data into HTML */
 class Renderer ( private val env: Env, private val data: Data ) {
 
-    /** The templating engine */
-    private val engine = new TemplateEngine
-
-    /** The root directory to look in for templates */
-    val root = new File( env.rootDir, "templates" ).getAbsoluteFile
+    /** Templating engine */
+    private val engine = new Handlebars(
+        new FileTemplateLoader(
+            new File( env.rootDir, "templates" ).getAbsoluteFile,
+            ".mustache"
+        )
+    )
 
     /** Renders the given component type with the given data */
     def apply ( template: String, data: Map[String, Any] ): String = {
-        val path = new File(root, template + ".mustache")
-        engine.layout( path.toString, data )
+
+        // Converts a value to a java equivalent
+        def convert ( value: Any ): Any = value match {
+            case list: Map[_, _] => JavaConversions.mapAsJavaMap(
+                list.foldLeft( Map[Any,Any]() ) {
+                    (accum, pair) => accum + (pair._1 -> convert(pair._2))
+                }
+            )
+            case seq: Seq[_]
+                => JavaConversions.asJavaIterable( seq.map( convert _ ) )
+            case _ => value
+        }
+
+        engine.compile( template ).apply( Context.newBuilder(
+            JavaConversions.mapAsJavaMap(
+                data.foldLeft( Map[String, Any]() ) {
+                    (accum, pair) => accum + (pair._1 -> convert(pair._2))
+                }
+            ) ).build
+        )
     }
 
     /** Renders the given component type with the given data */
