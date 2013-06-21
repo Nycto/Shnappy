@@ -6,6 +6,7 @@ require 'rubygems'
 require 'set'
 require 'sass'
 require 'pp'
+require 'securerandom'
 
 
 # Asks for user input and returns the result
@@ -74,8 +75,15 @@ task :cloudant => [ :dotcloudcli ] do
 end
 
 
+# Sets up the "secrect" key for this instance
+task :secret => [ :dotcloudcli ] do
+    key = SecureRandom.uuid
+    sh("cd build; dotcloud env set SECRET_KEY=#{key}")
+    puts
+end
+
 # Initializes the dotcloud environment
-task :setup => [ :dotcloud, :cloudant ] do
+task :setup => [ :dotcloud, :secret, :cloudant ] do
 
     # Reduce the WWW memory usage
     sh("cd build; dotcloud scale www:memory=256M")

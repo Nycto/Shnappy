@@ -1,7 +1,9 @@
 package com.roundeights.shnappy
 
 import java.io.File
+import java.util.UUID
 import com.roundeights.scalon.nParser
+import com.roundeights.hasher.Algo
 
 /**
  * Environment information
@@ -36,7 +38,7 @@ object Env {
         val file = new File("/home/dotcloud/environment.json")
         file.isFile match {
 
-            case false => Env(
+            case false => new Env(
                 couchDB = Left( CouchDB("localhost", 5984, false) ),
                 database = "shnappy",
                 rootDir = new File( System.getProperty("user.dir") )
@@ -45,14 +47,15 @@ object Env {
             case true => {
                 val json = nParser.json( file ).asObject
 
-                Env(
+                new Env(
                     couchDB = Right( Cloudant(
                         username = json.str("CLOUDANT_USER"),
                         apiKey = json.str("CLOUDANT_KEY"),
                         password = json.str("CLOUDANT_PASSWORD")
                     ) ),
                     database = json.str("COUCHDB_DATABASE"),
-                    rootDir = findRoot
+                    rootDir = findRoot,
+                    secret = json.str_?("SECRET_KEY")
                 )
             }
 
@@ -64,9 +67,18 @@ object Env {
 /**
  * Environment information
  */
-case class Env (
-    couchDB: Either[Env.CouchDB, Env.Cloudant],
-    database: String,
-    rootDir: File
-)
+class Env (
+    val couchDB: Either[Env.CouchDB, Env.Cloudant],
+    val database: String,
+    val rootDir: File,
+    secret: Option[String] = None
+) {
+
+    /** The secret key for this environment */
+    val secretKey = {
+        val seed = secret.getOrElse( UUID.randomUUID.toString )
+        Algo.pbkdf2( seed, 1000, 512 )( seed )
+    }
+
+}
 
