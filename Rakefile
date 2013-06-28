@@ -132,6 +132,13 @@ task :assets do
 end
 
 
+# Copies over the templates directory
+task :templates do
+    puts "Copying templates directory"
+    FileUtils.cp_r( 'templates', 'build/' )
+end
+
+
 # Cleans out all build artifacts
 task :clean do
     sh("sbt clean")
@@ -153,12 +160,11 @@ task :package do
     end
 
     FileUtils.cp( wars[0], 'build/ROOT.war' )
-    FileUtils.cp_r( 'templates', 'build/' )
 end
 
 
 # Default build behavior
-task :default => [ :package, :assets ]
+task :default => [ :package, :assets, :templates ]
 
 
 # Deploys this site out to dotcloud
