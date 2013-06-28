@@ -6,6 +6,7 @@ import com.roundeights.foldout._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent._
+import java.util.UUID
 
 /** @see Data */
 object Data {
@@ -71,6 +72,13 @@ class Data ( database: String, private val parser: Parser, couch: CouchDB ) {
             case None => new SiteInfo
         })
     }
+
+    /** Returns a user by their ID */
+    def getUser ( uuid: UUID ): Future[Option[User]]
+        = db.get( uuid.toString ).map( _.map( doc => User(doc) ) )
+
+    /** Saves a User */
+    def saveUser ( user: User ): Future[Written] = db.put( user )
 
 }
 
