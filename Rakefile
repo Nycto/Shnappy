@@ -82,13 +82,13 @@ task :secret => [ :dotcloudcli ] do
     puts
 end
 
+
 # Initializes the dotcloud environment
 task :setup => [ :dotcloud, :secret, :cloudant ] do
 
     # Reduce the WWW memory usage
     sh("cd build; dotcloud scale www:memory=256M")
 end
-
 
 
 # Compile the Sass
@@ -125,6 +125,13 @@ task :sass do
 end
 
 
+# Copies all assets from the assets directory
+task :assets do
+    puts "Copying assets directory"
+    FileUtils.cp_r( 'assets', 'build/' )
+end
+
+
 # Cleans out all build artifacts
 task :clean do
     sh("sbt clean")
@@ -150,8 +157,12 @@ task :package do
 end
 
 
+# Default build behavior
+task :default => [ :package, :assets ]
+
+
 # Deploys this site out to dotcloud
-task :deploy => [ :dotcloudcli, :package, :sass ] do
+task :deploy => [ :dotcloudcli, :default ] do
     sh("cd build; dotcloud push")
 end
 
