@@ -40,15 +40,19 @@ object Env {
         val file = new File("/home/dotcloud/environment.json")
         file.isFile match {
 
-            case false => new Env(
-                couchDB = Left( CouchDB("localhost", 5984, false) ),
-                database = "shnappy",
-                rootDir = new File( System.getProperty("user.dir") )
-            )
+            case false => {
+                val rootDir = new File( System.getProperty("user.dir") )
+                new Env(
+                    couchDB = Left( CouchDB("localhost", 5984, false) ),
+                    database = "shnappy",
+                    rootDir = rootDir,
+                    cssDir = new File(rootDir, "build/css")
+                )
+            }
 
             case true => {
                 val json = nParser.json( file ).asObject
-
+                val rootDir = findRoot
                 new Env(
                     couchDB = Right( Cloudant(
                         username = json.str("CLOUDANT_USER"),
@@ -56,7 +60,8 @@ object Env {
                         password = json.str("CLOUDANT_PASSWORD")
                     ) ),
                     database = json.str("COUCHDB_DATABASE"),
-                    rootDir = findRoot,
+                    rootDir = rootDir,
+                    cssDir = new File(rootDir, "css"),
                     secret = json.str_?("SECRET_KEY")
                 )
             }
@@ -73,6 +78,7 @@ class Env (
     val couchDB: Either[Env.CouchDB, Env.Cloudant],
     val database: String,
     val rootDir: File,
+    cssDir: File,
     secret: Option[String] = None
 ) {
 
@@ -82,8 +88,14 @@ class Env (
         Algo.pbkdf2( seed, 1000, 512 )( seed )
     }
 
+    /** A loader for accessing the CSS */
+    val css = new AssetLoader( cssDir, "css" )
+
+    /** The JavaScript asset loader */
+    val js = new AssetLoader( new File(rootDir, "js"), "js" )
+
     /** The resource asset loader */
-    val loader = new AssetLoader( new File(rootDir, "assets"), "assets" )
+    val assets = new AssetLoader( new File(rootDir, "assets"), "assets" )
 
 }
 

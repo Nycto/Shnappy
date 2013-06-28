@@ -28,21 +28,21 @@ class Renderer ( private val env: Env, private val data: Data ) {
     engine.registerHelper( "js", new Helper[Any] {
         /** {@inheritDoc} */
         override def apply( value: Any, opts: Options )
-            = env.loader.js( extractValues( opts ):_* )
+            = env.js.js( extractValues( opts ):_* )
     });
 
     // Add a helper to load the CSS
     engine.registerHelper( "css", new Helper[Any] {
         /** {@inheritDoc} */
         override def apply( value: Any, opts: Options )
-            = env.loader.css( extractValues( opts ):_* )
+            = env.css.css( extractValues( opts ):_* )
     });
 
     // Add a helper to load the URL for a single asset
     engine.registerHelper( "asset", new Helper[Any] {
         /** {@inheritDoc} */
         override def apply( value: Any, opts: Options )
-            = env.loader.url( opts.fn().toString ).getOrElse("")
+            = env.assets.url( opts.fn().toString ).getOrElse("")
     });
 
 

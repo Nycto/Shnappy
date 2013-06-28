@@ -94,7 +94,6 @@ end
 # Compile the Sass
 task :sass do
     puts "Compiling Sass..."
-    sh("mkdir -p build/assets/css")
 
     includes = ["css"] + Gem::Specification.inject([]) do |memo, gem|
         dir = gem.gem_dir + "/app/assets/stylesheets"
@@ -110,7 +109,8 @@ task :sass do
         .reject{ |file| File.basename(file).start_with?("_") }
         .map do |file|
             withoutExt = file.chomp( File.extname(file) )
-            compileTo = "build/assets/#{withoutExt}.css"
+            compileTo = "build/#{withoutExt}.css"
+            FileUtils.mkpath( File.dirname(compileTo) )
 
             puts "Compiling #{file} to #{compileTo}"
 

@@ -22,7 +22,13 @@ class SiteEntry extends Skene {
     private val renderer = new Renderer( Env.env, Data() )
 
     // Load the static assets
-    delegate( Env.env.loader.handler )
+    delegate( Env.env.assets.handler )
+
+    // Load the JS
+    delegate( Env.env.js.handler )
+
+    // Load the CSS
+    delegate( Env.env.css.handler )
 
     // Attempt to render this as a slug
     delegate( new SlugHandler )
