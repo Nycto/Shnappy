@@ -16,7 +16,7 @@ class Renderer ( private val env: Env, private val data: Data ) {
     private val engine = new Handlebars(
         new FileTemplateLoader(
             new File( env.rootDir, "templates" ).getAbsoluteFile,
-            ".mustache"
+            ".hbs"
         )
     )
 
