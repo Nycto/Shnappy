@@ -24,6 +24,9 @@ class SiteEntry extends Skene {
     // Load the static assets
     delegate( Env.env.assets.handler )
 
+    // Wire up a handler for the favicon
+    get("/favicon.ico")( Env.env.assets.handler )
+
     // Load the JS
     delegate( Env.env.js.handler )
 
