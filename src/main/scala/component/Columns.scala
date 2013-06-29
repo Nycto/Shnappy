@@ -23,7 +23,13 @@ object Columns {
 /**
  * Renders columns
  */
-case class Columns( private val columns: Seq[Component] ) extends Component {
+case class Columns(
+    private val columns: Seq[Component] = Seq()
+) extends Component {
+
+    /** Prepends a component */
+    def :: ( component: Component ): Columns
+        = Columns( component +: columns )
 
     /** {@inheritDoc} */
     override def render( renderer: Renderer ): Future[String] = {
