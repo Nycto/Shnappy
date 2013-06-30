@@ -164,7 +164,7 @@ end
 
 
 # Default build behavior
-task :default => [ :package, :assets, :templates ]
+task :default => [ :package, :sass, :assets, :templates ]
 
 
 # Deploys this site out to dotcloud
