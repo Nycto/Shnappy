@@ -21,17 +21,8 @@ class SiteEntry extends Skene {
     /** A shared renderer */
     private val renderer = new Renderer( Env.env, Data() )
 
-    // Load the static assets
-    delegate( Env.env.assets.handler )
-
-    // Wire up a handler for the favicon
-    get("/favicon.ico")( Env.env.assets.handler )
-
-    // Load the JS
-    delegate( Env.env.js.handler )
-
-    // Load the CSS
-    delegate( Env.env.css.handler )
+    // Attempt to load any support endpoints
+    delegate( new UtilEntry )
 
     // Attempt to render this as a slug
     delegate( new SlugHandler )
