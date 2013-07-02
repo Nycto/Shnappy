@@ -14,7 +14,7 @@ object Prereq {
      */
     val require = Registry()
         .register[Auth](
-            new AuthProvider( new Session(Env.env.secretKey), Data() )
+            new AuthProvider( new Session(Env.env.secretKey), Data.admin )
         )
 }
 

@@ -3,8 +3,9 @@ package com.roundeights.shnappy.handler
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import com.roundeights.skene._
-import com.roundeights.shnappy._
 import com.roundeights.attempt._
+import com.roundeights.shnappy._
+import com.roundeights.shnappy.admin.AdminHandler
 
 /** @see SiteEntry */
 object SiteEntry {

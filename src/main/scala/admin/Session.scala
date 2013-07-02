@@ -1,4 +1,4 @@
-package com.roundeights.shnappy
+package com.roundeights.shnappy.admin
 
 import scala.concurrent.Promise
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -70,7 +70,7 @@ trait Auth {
  */
 class AuthProvider (
     private val session: Session,
-    private val data: Data
+    private val data: AdminData
 ) extends Provider[Auth] {
 
     /** {@inheritDoc} */

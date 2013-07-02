@@ -1,4 +1,4 @@
-package com.roundeights.shnappy
+package com.roundeights.shnappy.admin
 
 import com.roundeights.foldout.{Doc, Documentable}
 import com.roundeights.vfunk.{Validate, Filter, TextField}

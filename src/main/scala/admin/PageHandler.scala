@@ -1,14 +1,13 @@
-package com.roundeights.shnappy.handler
+package com.roundeights.shnappy.admin
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.roundeights.skene._
-import com.roundeights.shnappy._
 import com.roundeights.shnappy.admin.Prereq.require.use
 
 /**
- * Admin handlers
+ * Page API handlers
  */
-class AdminHandler extends Skene {
+class PageHandler extends Skene {
 
     post("/admin/pages")( use[Auth].in((prereqs, resp, recover) => {
         resp.text("ok").done
