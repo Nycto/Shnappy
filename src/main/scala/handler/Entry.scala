@@ -24,6 +24,9 @@ class SiteEntry extends Skene {
     // Attempt to load any support endpoints
     delegate( new UtilEntry )
 
+    // Handle Admin requests
+    delegate( new AdminHandler )
+
     // Attempt to render this as a slug
     delegate( new SlugHandler )
 

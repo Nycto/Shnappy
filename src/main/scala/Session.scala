@@ -1,8 +1,15 @@
 package com.roundeights.shnappy
 
+import scala.concurrent.Promise
+import scala.concurrent.ExecutionContext.Implicits.global
 import java.util.{Date, UUID}
 import com.roundeights.hasher.{Algo, Hash}
+import com.roundeights.skene.{Provider, Bundle, Registry}
+import com.roundeights.attempt._
 
+/**
+ * Parses and creates session tokens
+ */
 class Session ( secret: String ) {
 
     /** Returns the HMAC seed needed for the given time offset */
@@ -37,6 +44,62 @@ class Session ( secret: String ) {
 
         checkOffset(0)
     }
+}
 
+/** @see Auth */
+object Auth {
+
+    /** Thrown when a user isn't logged in */
+    class Unauthenticated( message: String ) extends Exception(message)
+}
+
+/**
+ * Represents the logged in state of a user
+ */
+trait Auth {
+
+    /** The user from the request */
+    def user: User
+
+    /** {@inheritDoc} */
+    override def toString = user.toString
+}
+
+/**
+ * Builds a logged in user
+ */
+class AuthProvider (
+    private val session: Session,
+    private val data: Data
+) extends Provider[Auth] {
+
+    /** {@inheritDoc} */
+    override def build( bundle: Bundle, next: Promise[Auth] ): Unit = {
+        for {
+
+            // Extract the auth cookie
+            cookie <- bundle.request.cookies.first("auth") :: OnFail {
+                next.failure( new Auth.Unauthenticated(
+                    "Auth cookie not found"
+                ) )
+            }
+
+            // Pull the user ID out of the cookie
+            userID <- session.checkToken( cookie.value ) :: OnFail {
+                next.failure( new Auth.Unauthenticated("Invalid auth cookie") )
+            }
+
+            // Fetch the user, if they exist
+            userOpt <- data.getUser( userID ) :: OnFail.alsoFail( next )
+
+            // Extract the user from the option
+            userObj <- userOpt :: OnFail {
+                next.failure( new Auth.Unauthenticated("User does not exist") )
+            }
+
+        } next.success( new Auth {
+            override val user = userObj
+        } )
+    }
 }
 
