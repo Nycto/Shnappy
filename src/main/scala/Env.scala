@@ -46,7 +46,8 @@ object Env {
                     couchDB = Left( CouchDB("localhost", 5984, false) ),
                     database = "shnappy",
                     rootDir = rootDir,
-                    cssDir = new File(rootDir, "build/css")
+                    cssDir = new File(rootDir, "build/css"),
+                    httpsOnlyAdmin = false
                 )
             }
 
@@ -79,6 +80,7 @@ class Env (
     val database: String,
     val rootDir: File,
     cssDir: File,
+    val httpsOnlyAdmin: Boolean = true,
     secret: Option[String] = None
 ) {
 
