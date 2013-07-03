@@ -13,61 +13,21 @@ import java.util.{HashMap => JavaMap}
 class Renderer ( private val env: Env, private val data: Data ) {
 
     /** Templating engine */
-    private val engine = new Handlebars( env.templates )
+    private val engine = new Templater( env ) {
 
-    /** Turns a value into a list of strings */
-    private def extractValues ( opts: Options ): Seq[String]
-        = opts.fn().toString.split(",").map( _.trim ).filter( _ != "" )
+        // Add a helper to load the JavaScript
+        handleList( "js", content => env.js.js( content:_* ) )
 
-    // Add a helper to load the JavaScript
-    engine.registerHelper( "js", new Helper[Any] {
-        /** {@inheritDoc} */
-        override def apply( value: Any, opts: Options )
-            = env.js.js( extractValues( opts ):_* )
-    });
+        // Add a helper to load the CSS
+        handleList( "css", content => env.css.css( content:_* ) )
 
-    // Add a helper to load the CSS
-    engine.registerHelper( "css", new Helper[Any] {
-        /** {@inheritDoc} */
-        override def apply( value: Any, opts: Options )
-            = env.css.css( extractValues( opts ):_* )
-    });
-
-    // Add a helper to load the URL for a single asset
-    engine.registerHelper( "asset", new Helper[Any] {
-        /** {@inheritDoc} */
-        override def apply( value: Any, opts: Options )
-            = env.assets.url( opts.fn().toString ).getOrElse("")
-    });
-
-
-    /** Renders the given component type with the given data */
-    def apply ( template: String, data: Map[String, Any] ): String = {
-
-        // Converts a value to a java equivalent
-        def convert ( value: Any ): Any = value match {
-            case list: Map[_, _] => JavaConversions.mapAsJavaMap(
-                list.foldLeft( Map[Any,Any]() ) {
-                    (accum, pair) => accum + (pair._1 -> convert(pair._2))
-                }
-            )
-            case seq: Seq[_]
-                => JavaConversions.asJavaIterable( seq.map( convert _ ) )
-            case _ => value
-        }
-
-        engine.compile( template ).apply( Context.newBuilder(
-            JavaConversions.mapAsJavaMap(
-                data.foldLeft( Map[String, Any]() ) {
-                    (accum, pair) => accum + (pair._1 -> convert(pair._2))
-                }
-            ) ).build
-        )
+        // Add a helper to load the URL for a single asset
+        handle( "asset", content => env.assets.url(content).getOrElse("") )
     }
 
     /** Renders the given component type with the given data */
     def apply ( template: String, data: (String, Any)* ): String
-        = apply( template, Map(data:_*) )
+        = engine( template, Map(data:_*) )
 
     /** Renders the page level template */
     def renderPage
@@ -78,7 +38,7 @@ class Renderer ( private val env: Env, private val data: Data ) {
         val infoFuture = data.getSiteInfo
 
         linksFuture.flatMap( links => infoFuture.map( info => {
-            apply( "page",
+            engine.apply( "page",
                 info.toMap +
                 ("content" -> content) +
                 ("nav" -> links.map( _.toMap ))
