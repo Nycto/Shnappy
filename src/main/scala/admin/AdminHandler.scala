@@ -8,13 +8,17 @@ import com.roundeights.shnappy.Env
 /**
  * Admin handlers
  */
-class AdminHandler extends Skene {
+class AdminHandler( env: Env, data: AdminData ) extends Skene {
+
+    /** A registry of Prereq providers */
+    val prereq = Registry()
+        .register[Auth]( new AuthProvider(new Session(env.secretKey), data) )
 
     // Admin pages MUST be https in production
     protected def requireSecure( that: Skene,
         callback: (Response, String) => Unit
     ): Unit = {
-        if ( Env.env.httpsOnlyAdmin ) {
+        if ( env.httpsOnlyAdmin ) {
             that.notSecure((resp: Response) => callback(
                 resp.badRequest, "This page is only accessible via HTTPS"
             ))
@@ -44,7 +48,7 @@ class AdminHandler extends Skene {
         requireSecure( this, error(_, _) )
         handleErrors( this, error(_, _) )
 
-        delegate( new PageHandler )
+        delegate( new PageHandler(prereq) )
     })
 
     // API handlers

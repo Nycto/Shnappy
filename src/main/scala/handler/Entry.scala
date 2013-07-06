@@ -5,6 +5,7 @@ import scala.concurrent.Future
 import com.roundeights.skene._
 import com.roundeights.attempt._
 import com.roundeights.shnappy._
+import com.roundeights.shnappy.component.Parser
 import com.roundeights.shnappy.admin.AdminHandler
 
 /** @see SiteEntry */
@@ -17,19 +18,22 @@ object SiteEntry {
 /**
  * The primary entry point for site requests
  */
-class SiteEntry extends Skene {
+class SiteEntry ( env: Env ) extends Skene {
+
+    /** Data access */
+    private val data = Data( env, Parser.parser )
 
     /** A shared renderer */
-    private val renderer = new Renderer( Env.env, Data() )
+    private val renderer = new Renderer( env, data )
 
     // Attempt to load any support endpoints
-    delegate( new UtilEntry )
+    delegate( new UtilEntry(env) )
 
     // Handle Admin requests
-    delegate( new AdminHandler )
+    delegate( new AdminHandler(env, data.admin) )
 
     // Attempt to render this as a slug
-    delegate( new SlugHandler )
+    delegate( new SlugHandler(data, renderer) )
 
     /** Recovers from a future */
     private def recover[T] ( resp: Response, future: Future[T] ): Unit = {

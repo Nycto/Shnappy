@@ -10,10 +10,7 @@ import com.roundeights.shnappy._
 /**
  * Handles requests to miscellanious pages
  */
-class SlugHandler extends Skene {
-
-    /** A shared renderer */
-    private val renderer = new Renderer( Env.env, Data() )
+class SlugHandler( data: Data, renderer: Renderer ) extends Skene {
 
     /** Renders the given page */
     private def showPage (
@@ -40,12 +37,12 @@ class SlugHandler extends Skene {
 
     // Render the index
     index( (recover, request, response) => {
-        showPage(recover, response, Data().getIndex )
+        showPage(recover, response, data.getIndex )
     })
 
     // Returns a specific page
     get("/:page") { (recover, request, response) => {
-        showPage(recover, response, Data().getPage( request.params("page") ) )
+        showPage(recover, response, data.getPage( request.params("page") ) )
     }}
 
 }

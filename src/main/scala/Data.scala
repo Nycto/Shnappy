@@ -11,26 +11,18 @@ import scala.concurrent._
 /** @see Data */
 object Data {
 
-    /** The private couch DB instance */
-    private val couchDB = Env.env.couchDB match {
-        case Left( Env.CouchDB(host, port, ssl) ) => CouchDB(host, port, ssl)
-        case Right( conf ) => CouchDB.cloudant(
-            conf.apiKey, conf.password, Some(conf.username)
-        )
-    }
-
-    /** The couch db connection */
-    private lazy val db = new Data(
-        Env.env.database,
-        Parser.parser,
-        couchDB
-    )
-
     /** Returns a shared data instance */
-    def apply(): Data = db
-
-    /** Admin data access */
-    lazy val admin = new AdminData( apply().db )
+    def apply( env: Env, parser: Parser ): Data = new Data(
+        env.database,
+        parser,
+        env.couchDB match {
+            case Left( Env.CouchDB(host, port, ssl) )
+                => CouchDB(host, port, ssl)
+            case Right( conf ) => CouchDB.cloudant(
+                conf.apiKey, conf.password, Some(conf.username)
+            )
+        }
+    )
 }
 
 /**
@@ -41,6 +33,9 @@ class Data ( database: String, private val parser: Parser, couch: CouchDB ) {
     // Make sure the database exists
     val db = couch.db( database )
     db.createNow
+
+    /** Admin data access */
+    val admin = new AdminData( db )
 
     // Design interface
     private val design = Await.result( db.designDir(
