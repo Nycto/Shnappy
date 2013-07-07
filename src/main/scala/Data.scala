@@ -38,7 +38,7 @@ class Data ( database: String, private val parser: Parser, couch: CouchDB ) {
     val admin = new AdminData( db )
 
     // Design interface
-    private val design = Await.result( db.designDir(
+    private val design = Await.result( db.designDir( classOf[Data],
         "pagesBySlug" -> "/couchdb/pagesBySlug",
         "pagesByIndex" -> "/couchdb/pagesByIndex",
         "nav" -> "/couchdb/nav"
