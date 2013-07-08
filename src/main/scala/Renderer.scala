@@ -13,12 +13,7 @@ import java.util.{HashMap => JavaMap}
 class Renderer ( private val env: Env, private val data: Data ) {
 
     /** Templating engine */
-    private val engine = new Handlebars(
-        new FileTemplateLoader(
-            new File( env.rootDir, "templates" ).getAbsoluteFile,
-            ".hbs"
-        )
-    )
+    private val engine = new Handlebars( env.templates )
 
     /** Turns a value into a list of strings */
     private def extractValues ( opts: Options ): Seq[String]

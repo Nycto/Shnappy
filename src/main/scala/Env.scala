@@ -6,6 +6,7 @@ import com.roundeights.scalon.nParser
 import com.roundeights.hasher.Algo
 import com.roundeights.skene.static.AssetLoader
 import scala.concurrent.ExecutionContext.Implicits.global
+import com.github.jknack.handlebars.io._
 
 /**
  * Environment information
@@ -16,27 +17,61 @@ object Env {
     case class CouchDB ( host: String, port: Int, ssl: Boolean )
 
     /** Cloudant configuration */
-    case class Cloudant ( username: String, apiKey: String, password: String )
+    case class Cloudant (
+        username: String, apiKey: String, password: String
+    ) {
+        /** {@inheritDoc} */
+        override def toString = "Cloudant(%s, %s)".format(username, apiKey)
+    }
 
     /** Builds a local Env object using the given root */
-    def local ( rootDir: File ) = new Env(
-        couchDB = Left( CouchDB("localhost", 5984, false) ),
-        database = "shnappy",
-        rootDir = rootDir,
-        cssDir = new File(rootDir, "build/css"),
-        httpsOnlyAdmin = false
-    )
+    def local = {
+        val rootDir = new File( System.getProperty("user.dir") )
+        new Env(
+            couchDB = Left( CouchDB("localhost", 5984, false) ),
+            database = "shnappy",
+            css = AssetLoader.fromDir(
+                new File(rootDir, "target/resources"), "css"
+            ),
+            js = AssetLoader.fromDir( rootDir, "js" ),
+            assets = AssetLoader.fromDir( rootDir, "assets" ),
+            templates = new FileTemplateLoader(
+                new File( rootDir, "templates" ).getAbsoluteFile
+            ),
+            httpsOnlyAdmin = false
+        )
+    }
+
+    /** Extracts a setting */
+    private def require( settings: (String) => Option[String], key: String ) = {
+        settings(key).getOrElse(
+            throw new java.util.NoSuchElementException(
+                "Required environment variable is not set: %s".format(key)
+            )
+        )
+    }
 
     /** Builds a production ready environment instance */
-    def war( rootDir: File, settings: (String) => Option[String] ) = new Env(
+    def prod(
+        settings: (String) => Option[String],
+        mainClazz: Class[_]
+    ) = new Env(
         couchDB = Right( Cloudant(
-            username = settings("CLOUDANT_USER").get,
-            apiKey = settings("CLOUDANT_KEY").get,
-            password = settings("CLOUDANT_PASSWORD").get
+            username = require(settings, "CLOUDANT_USER"),
+            apiKey = require(settings, "CLOUDANT_KEY"),
+            password = require(settings, "CLOUDANT_PASSWORD")
         ) ),
-        database = settings("COUCHDB_DATABASE").get,
-        rootDir = rootDir,
-        cssDir = new File(rootDir, "css"),
+        database = require(settings, "COUCHDB_DATABASE"),
+        css = AssetLoader.fromJar( mainClazz, "css" ),
+        js = AssetLoader.fromJar( mainClazz, "js" ),
+        assets = AssetLoader.fromJar( mainClazz, "assets" ),
+        templates = new URLTemplateLoader {
+            override def getResource( location: String ) = {
+                mainClazz.getResource(
+                    "/templates/" + location.dropWhile(_ == '/')
+                )
+            }
+        },
         secret = settings("SECRET_KEY")
     )
 }
@@ -47,25 +82,25 @@ object Env {
 class Env (
     val couchDB: Either[Env.CouchDB, Env.Cloudant],
     val database: String,
-    val rootDir: File,
-    cssDir: File,
+    val css: AssetLoader,
+    val js: AssetLoader,
+    val assets: AssetLoader,
+    val templates: TemplateLoader,
     val httpsOnlyAdmin: Boolean = true,
     secret: Option[String] = None
 ) {
+
+    /** {@inheritDoc} */
+    override def toString = {
+        "Env(couch: %s, db: %s, css: %s, js: %s, assets: %s)".format(
+            couchDB, database, css, js, assets
+        )
+    }
 
     /** The secret key for this environment */
     val secretKey = {
         val seed = secret.getOrElse( UUID.randomUUID.toString )
         Algo.pbkdf2( seed, 1000, 512 )( seed )
     }
-
-    /** A loader for accessing the CSS */
-    val css = new AssetLoader( cssDir, "css" )
-
-    /** The JavaScript asset loader */
-    val js = new AssetLoader( new File(rootDir, "js"), "js" )
-
-    /** The resource asset loader */
-    val assets = new AssetLoader( new File(rootDir, "assets"), "assets" )
 }
 
