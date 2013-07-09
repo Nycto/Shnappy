@@ -52,6 +52,7 @@ class AdminHandler( env: Env, data: AdminData ) extends Skene {
         default((req: Request, resp: Response) => error(resp, "404 Not Found"))
 
         delegate( new PageApiHandler(prereq) )
+        delegate( new AuthApiHandler(prereq) )
     })
 
 
