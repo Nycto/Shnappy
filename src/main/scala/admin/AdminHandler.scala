@@ -13,6 +13,7 @@ class AdminHandler( env: Env, data: AdminData ) extends Skene {
     /** A registry of Prereq providers */
     val prereq = Registry()
         .register[Auth]( new AuthProvider(new Session(env.secretKey), data) )
+        .register[BodyData]( new BodyDataProvider )
 
 
     // Admin pages MUST be https in production
