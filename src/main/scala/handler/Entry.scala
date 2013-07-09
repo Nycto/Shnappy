@@ -30,7 +30,7 @@ class SiteEntry ( env: Env ) extends Skene {
     delegate( new UtilEntry(env) )
 
     // Handle Admin requests
-    get("/admin/*")( new AdminHandler(env, data.admin) )
+    request("/admin/**")( new AdminHandler(env, data.admin) )
 
     // Attempt to render this as a slug
     delegate( new SlugHandler(data, renderer) )

@@ -3,12 +3,15 @@ package com.roundeights.shnappy.admin
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.roundeights.skene._
 import com.roundeights.scalon.nObject
-import com.roundeights.shnappy.Env
+import com.roundeights.shnappy._
 
 /**
  * Admin handlers
  */
 class AdminHandler( env: Env, data: AdminData ) extends Skene {
+
+    // Template builder
+    val template = new Templater( env )
 
     /** A registry of Prereq providers */
     val prereq = Registry()
@@ -37,30 +40,38 @@ class AdminHandler( env: Env, data: AdminData ) extends Skene {
         })
     }
 
+    /** Generates an HTML error message for the given response */
+    private def htmlError ( resp: Response, message: String ): Unit = {
+        resp.html( template( "admin/page",
+            "title" -> "Error",
+            "content" -> template("admin/error", "message" -> message)
+        ) ).done
+    }
+
+    /** Generates a json error message for the given response */
+    private def jsonError ( resp: Response, message: String ): Unit
+        = resp.json( nObject("error" -> message).toString ).done
+
 
     // HTML handlers
     delegate( new Skene {
-
-        /** Generates an HTML error message for the given response */
-        private def error ( resp: Response, message: String ): Unit
-            = resp.html(message).done
-
-        requireSecure( this, error(_, _) )
-        handleErrors( this, error(_, _) )
-
-        delegate( new PageHandler(prereq) )
+        requireSecure( this, htmlError(_, _) )
+        handleErrors( this, htmlError(_, _) )
     })
 
     // API handlers
     delegate( new Skene {
+        requireSecure( this, jsonError(_, _) )
+        handleErrors( this, jsonError(_, _) )
 
-        /** Generates a json error message for the given response */
-        private def error ( resp: Response, message: String ): Unit
-            = resp.json( nObject("error" -> message).toString ).done
-
-        requireSecure( this, error(_, _) )
-        handleErrors( this, error(_, _) )
+        delegate( new PageApiHandler(prereq) )
     })
+
+    // 404
+    default((req: Request, resp: Response) => {
+        htmlError(resp, "404 Not Found")
+    })
+
 }
 
 

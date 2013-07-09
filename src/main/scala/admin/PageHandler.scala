@@ -6,7 +6,7 @@ import com.roundeights.skene._
 /**
  * Page API handlers
  */
-class PageHandler ( req: Registry ) extends Skene {
+class PageApiHandler ( req: Registry ) extends Skene {
 
     post("/admin/pages")( req.use[Auth].in((prereqs, resp, recover) => {
         resp.text("ok").done
