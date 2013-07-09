@@ -38,7 +38,7 @@ object Env {
             templates = new FileTemplateLoader(
                 new File( rootDir, "templates" ).getAbsoluteFile
             ),
-            httpsOnlyAdmin = false
+            adminDevMode = true
         )
     }
 
@@ -86,7 +86,7 @@ class Env (
     val js: AssetLoader,
     val assets: AssetLoader,
     val templates: TemplateLoader,
-    val httpsOnlyAdmin: Boolean = true,
+    val adminDevMode: Boolean = false,
     secret: Option[String] = None
 ) {
 

@@ -19,7 +19,7 @@ class AdminHandler( env: Env, data: AdminData ) extends Skene {
     protected def requireSecure( that: Skene,
         callback: (Response, String) => Unit
     ): Unit = {
-        if ( env.httpsOnlyAdmin ) {
+        if ( !env.adminDevMode ) {
             that.notSecure((resp: Response) => callback(
                 resp.badRequest, "This page is only accessible via HTTPS"
             ))
