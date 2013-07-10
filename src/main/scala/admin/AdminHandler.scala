@@ -16,40 +16,49 @@ class AdminHandler( env: Env, data: AdminData ) extends Skene {
         .register[BodyData]( new BodyDataProvider )
 
 
-    // Admin pages MUST be https in production
-    protected def requireSecure( that: Skene,
-        callback: (Response, String) => Unit
-    ): Unit = {
-        if ( !env.adminDevMode ) {
-            that.notSecure((resp: Response) => callback(
-                resp.badRequest, "This page is only accessible via HTTPS"
-            ))
-        }
-    }
+    /** A base handler for admin pages */
+    trait BaseAdmin extends Skene {
 
-    // Hooks in a standard error handler
-    protected def handleErrors( that: Skene,
-        callback: (Response, String) => Unit
-    ): Unit = {
-        that.error((request, response) => {
+        /** Generates a custom error message */
+        def formatErr ( resp: Response, message: String ): Unit
+
+        /** A custom error handler */
+        def customErr( resp: Response ): PartialFunction[Throwable, Unit] = {
+            new PartialFunction[Throwable, Unit] {
+                override def apply(v1: Throwable): Unit = {}
+                override def isDefinedAt(x: Throwable): Boolean = false
+            }
+        }
+
+        // Centralized error handler
+        error((req, resp) => customErr(resp).orElse({
+            case err: Auth.Unauthenticated
+                => formatErr( resp.unauthorized, "Unauthenticated request" )
             case err: Throwable => {
                 err.printStackTrace
-                callback( response.serverError, "Internal server error" )
+                formatErr( resp.serverError, "Internal server error" )
             }
-        })
+        }))
+
+        // Hook in a default page handler when nothing else matches
+        default( (_: Request, r: Response) => formatErr(r, "404 Not Found") )
+
+        // Fail non-secure requests
+        if ( !env.adminDevMode )
+            notSecure(_ => throw new Auth.Insecure)
     }
 
 
     // API handlers
-    request("/admin/api/**")(new Skene {
+    request("/admin/api/**")(new BaseAdmin {
 
-        /** Generates a json error message for the given response */
-        def error ( resp: Response, message: String ): Unit
-            = resp.json( nObject("error" -> message).toString ).done
-
-        requireSecure( this, error(_, _) )
-        handleErrors( this, error(_, _) )
-        default((req: Request, resp: Response) => error(resp, "404 Not Found"))
+        /** {@inheritDoc} */
+        override def formatErr ( resp: Response, message: String ): Unit = {
+            resp.json( nObject(
+                "status" -> "error",
+                "message" -> message
+            ).toString ).done
+        }
 
         delegate( new PageApiHandler(prereq) )
         delegate( new AuthApiHandler(prereq) )
@@ -57,18 +66,22 @@ class AdminHandler( env: Env, data: AdminData ) extends Skene {
 
 
     // HTML handlers
-    delegate( new Skene {
+    delegate( new BaseAdmin {
 
         // Template builder
         val template = Templater( env ).wrap("admin/page", "content")
 
-        /** Generates an HTML error message for the given response */
-        def error ( resp: Response, message: String ): Unit
+        /** {@inheritDoc} */
+        override def formatErr ( resp: Response, message: String ): Unit
             = resp.html( template("admin/error", "message" -> message) ).done
 
-        requireSecure( this, error(_, _) )
-        handleErrors( this, error(_, _) )
-        default((req: Request, resp: Response) => error(resp, "404 Not Found"))
+        /** {@inheritDoc} */
+        override def customErr(resp: Response) = {
+            case err: Auth.Unauthenticated
+                => resp.html( template("admin/login") ).done
+        }
+
+        delegate( new PageHtmlHandler(template, prereq) )
     })
 
 }

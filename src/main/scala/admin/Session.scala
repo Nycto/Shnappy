@@ -51,6 +51,9 @@ object Auth {
 
     /** Thrown when a user isn't logged in */
     class Unauthenticated( message: String ) extends Exception(message)
+
+    /** Thrown when a page isn't loaded via HTTPs */
+    class Insecure extends Exception
 }
 
 /**
