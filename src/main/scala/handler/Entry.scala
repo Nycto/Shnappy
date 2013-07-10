@@ -23,14 +23,20 @@ class SiteEntry ( env: Env ) extends Skene {
     /** Data access */
     private val data = Data( env, Parser.parser )
 
+    /** The root templating engine */
+    private val templates = Templater( env )
+        .handleList( "js", content => env.js.js( content:_* ) )
+        .handleList( "css", content => env.css.css( content:_* ) )
+        .handle( "asset", content => env.assets.url(content).getOrElse("") )
+
     /** A shared renderer */
-    private val renderer = new Renderer( env, data )
+    private val renderer = new Renderer( templates, data )
 
     // Attempt to load any support endpoints
     delegate( new UtilEntry(env) )
 
     // Handle Admin requests
-    request("/admin/**")( new AdminHandler(env, data.admin) )
+    request("/admin/**")( new AdminHandler(env, data.admin, templates) )
 
     // Attempt to render this as a slug
     delegate( new SlugHandler(data, renderer) )

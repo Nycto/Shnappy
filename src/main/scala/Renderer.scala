@@ -1,22 +1,10 @@
 package com.roundeights.shnappy
 
 import scala.concurrent.{Future, ExecutionContext}
-import scala.collection.JavaConversions
-
-import com.github.jknack.handlebars.io.FileTemplateLoader
-import com.github.jknack.handlebars.{Handlebars, Context, Helper, Options}
-import java.io.File
-import java.util.{HashMap => JavaMap}
 
 
 /** A renderer is used to translate data into HTML */
-class Renderer ( private val env: Env, private val data: Data ) {
-
-    /** Templating engine */
-    private val engine = Templater( env )
-        .handleList( "js", content => env.js.js( content:_* ) )
-        .handleList( "css", content => env.css.css( content:_* ) )
-        .handle( "asset", content => env.assets.url(content).getOrElse("") )
+class Renderer ( private val engine: Templater, private val data: Data ) {
 
     /** Renders the given component type with the given data */
     def apply ( template: String, data: (String, Any)* ): String

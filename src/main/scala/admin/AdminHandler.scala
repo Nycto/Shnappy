@@ -8,12 +8,17 @@ import com.roundeights.shnappy._
 /**
  * Admin handlers
  */
-class AdminHandler( env: Env, data: AdminData ) extends Skene {
+class AdminHandler(
+    env: Env, data: AdminData, baseTemplate: Templater
+) extends Skene {
 
     /** A registry of Prereq providers */
     val prereq = Registry()
         .register[Auth]( new AuthProvider(new Session(env.secretKey), data) )
         .register[BodyData]( new BodyDataProvider )
+
+    // Template builder
+    val template = baseTemplate.wrap("admin/page", "content")
 
 
     /** A base handler for admin pages */
@@ -67,9 +72,6 @@ class AdminHandler( env: Env, data: AdminData ) extends Skene {
 
     // HTML handlers
     delegate( new BaseAdmin {
-
-        // Template builder
-        val template = Templater( env ).wrap("admin/page", "content")
 
         /** {@inheritDoc} */
         override def formatErr ( resp: Response, message: String ): Unit

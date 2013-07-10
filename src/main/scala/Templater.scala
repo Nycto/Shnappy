@@ -25,6 +25,25 @@ trait Templater {
     /** Renders the given component type with the given data */
     def apply ( template: String, data: (String, Any)* ): String
         = apply( template, Map(data:_*) )
+
+    /** Generates a Templater that wraps other templated content */
+    def wrap(
+        template: String, as: String, data: Map[String, Any]
+    ): Templater = {
+        var outer = this
+        new Templater {
+            override def apply (
+                innerTemplate: String, innerData: Map[String, Any]
+            ): String = outer.apply(
+                template,
+                data + ( as -> outer.apply(innerTemplate, innerData) )
+            )
+        }
+    }
+
+    /** Generates a Templater that wraps other templated content */
+    def wrap( template: String, as: String, data: (String, Any)* ): Templater
+        = wrap(template, as, Map( data:_* ))
 }
 
 /**
@@ -57,25 +76,6 @@ class BaseTemplater (
     ): BaseTemplater = handle( name, content => callback(
         content.split(",").map( _.trim ).filter( _ != "" )
     ))
-
-    /** Generates a Templater that wraps other templated content */
-    def wrap(
-        template: String, as: String, data: Map[String, Any]
-    ): Templater = {
-        var outer = this
-        new Templater {
-            override def apply (
-                innerTemplate: String, innerData: Map[String, Any]
-            ): String = outer.apply(
-                template,
-                data + ( as -> outer.apply(innerTemplate, innerData) )
-            )
-        }
-    }
-
-    /** Generates a Templater that wraps other templated content */
-    def wrap( template: String, as: String, data: (String, Any)* ): Templater
-        = wrap(template, as, Map( data:_* ))
 
     /** {@inheritDoc} */
     override def apply ( template: String, data: Map[String, Any] ): String = {
