@@ -60,15 +60,11 @@ class AdminHandler( env: Env, data: AdminData ) extends Skene {
     delegate( new Skene {
 
         // Template builder
-        val template = new Templater( env )
+        val template = Templater( env ).wrap("admin/page", "content")
 
         /** Generates an HTML error message for the given response */
-        def error ( resp: Response, message: String ): Unit = {
-            resp.html( template( "admin/page",
-                "title" -> "Error",
-                "content" -> template("admin/error", "message" -> message)
-            ) ).done
-        }
+        def error ( resp: Response, message: String ): Unit
+            = resp.html( template("admin/error", "message" -> message) ).done
 
         requireSecure( this, error(_, _) )
         handleErrors( this, error(_, _) )

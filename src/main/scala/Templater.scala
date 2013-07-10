@@ -7,33 +7,78 @@ import com.github.jknack.handlebars.{Handlebars, Context, Helper, Options}
 import java.io.File
 import java.util.{HashMap => JavaMap}
 
+/** @see Templater */
+object Templater {
+
+    /** Constructs a new instance */
+    def apply( env: Env ) = new BaseTemplater( env )
+}
+
+/**
+ * An interface for rendering templated data
+ */
+trait Templater {
+
+    /** Renders the given component type with the given data */
+    def apply ( template: String, data: Map[String, Any] ): String
+
+    /** Renders the given component type with the given data */
+    def apply ( template: String, data: (String, Any)* ): String
+        = apply( template, Map(data:_*) )
+}
+
 /**
  * Renders a template
  */
-class Templater ( private val env: Env ) {
+class BaseTemplater (
+    private val env: Env,
+    private val handlers: Map[String,(String) => String] = Map()
+) extends Templater {
 
     /** Templating engine */
-    private val engine = new Handlebars( env.templates )
+    private lazy val engine = {
+        val engine = new Handlebars( env.templates )
+        handlers.foreach( pair => {
+            engine.registerHelper( pair._1, new Helper[Any] {
+                override def apply( value: Any, opts: Options )
+                    = pair._2( opts.fn().toString )
+            });
+        })
+        engine
+    }
 
     /** Registers a block handler */
-    protected def handle( name: String, callback: (String) => String ): Unit = {
-        engine.registerHelper( name, new Helper[Any] {
-            override def apply( value: Any, opts: Options )
-                = callback( opts.fn().toString )
-        });
-    }
+    def handle( name: String, callback: (String) => String ): BaseTemplater
+        = new BaseTemplater( env, handlers + (name -> callback) )
 
     /** Registers a block handler that expects a list of strings */
-    protected def handleList(
+    def handleList(
         name: String, callback: (Seq[String]) => String
-    ): Unit = {
-        handle( name, content => callback(
-            content.split(",").map( _.trim ).filter( _ != "" )
-        ))
+    ): BaseTemplater = handle( name, content => callback(
+        content.split(",").map( _.trim ).filter( _ != "" )
+    ))
+
+    /** Generates a Templater that wraps other templated content */
+    def wrap(
+        template: String, as: String, data: Map[String, Any]
+    ): Templater = {
+        var outer = this
+        new Templater {
+            override def apply (
+                innerTemplate: String, innerData: Map[String, Any]
+            ): String = outer.apply(
+                template,
+                data + ( as -> outer.apply(innerTemplate, innerData) )
+            )
+        }
     }
 
-    /** Renders the given component type with the given data */
-    def apply ( template: String, data: Map[String, Any] ): String = {
+    /** Generates a Templater that wraps other templated content */
+    def wrap( template: String, as: String, data: (String, Any)* ): Templater
+        = wrap(template, as, Map( data:_* ))
+
+    /** {@inheritDoc} */
+    override def apply ( template: String, data: Map[String, Any] ): String = {
 
         // Converts a value to a java equivalent
         def convert ( value: Any ): Any = value match {
@@ -55,10 +100,6 @@ class Templater ( private val env: Env ) {
             ) ).build
         )
     }
-
-    /** Renders the given component type with the given data */
-    def apply ( template: String, data: (String, Any)* ): String
-        = apply( template, Map(data:_*) )
 
 }
 
