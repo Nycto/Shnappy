@@ -38,6 +38,7 @@ object Env {
             templates = new FileTemplateLoader(
                 new File( rootDir, "templates" ).getAbsoluteFile
             ),
+            adminHost = "127.0.0.1",
             adminDevMode = true
         )
     }
@@ -72,6 +73,7 @@ object Env {
                 )
             }
         },
+        adminHost = require(settings, "ADMIN_HOST"),
         secret = settings("SECRET_KEY")
     )
 }
@@ -86,6 +88,7 @@ class Env (
     val js: AssetLoader,
     val assets: AssetLoader,
     val templates: TemplateLoader,
+    val adminHost: String,
     val adminDevMode: Boolean = false,
     secret: Option[String] = None
 ) {
