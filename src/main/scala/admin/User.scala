@@ -26,7 +26,7 @@ object User {
     )
 
     /** Validates a user's email address */
-    private[User] val email = TextField( "email", Filter.trim, Validate.email )
+    val email = TextField( "email", Filter.trim, Validate.email )
 }
 
 /**

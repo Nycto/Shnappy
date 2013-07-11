@@ -12,9 +12,12 @@ class AdminHandler(
     env: Env, data: AdminData, baseTemplate: Templater
 ) extends Skene {
 
+    /** Session token manager */
+    val sessions = new Session(env.secretKey)
+
     /** A registry of Prereq providers */
     val prereq = Registry()
-        .register[Auth]( new AuthProvider(new Session(env.secretKey), data) )
+        .register[Auth]( new AuthProvider(sessions, data) )
         .register[BodyData]( new BodyDataProvider )
 
     // Template builder
@@ -37,8 +40,13 @@ class AdminHandler(
 
         // Centralized error handler
         error((req, resp) => customErr(resp).orElse({
+
+            case err: BodyData.MissingKey
+                => formatErr( resp.badRequest, err.getMessage )
+
             case err: Auth.Unauthenticated
                 => formatErr( resp.unauthorized, "Unauthenticated request" )
+
             case err: Throwable => {
                 err.printStackTrace
                 formatErr( resp.serverError, "Internal server error" )
@@ -66,7 +74,7 @@ class AdminHandler(
         }
 
         delegate( new PageApiHandler(prereq) )
-        delegate( new AuthApiHandler(prereq) )
+        delegate( new AuthApiHandler(prereq, env, data, sessions) )
     })
 
 

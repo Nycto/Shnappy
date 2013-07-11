@@ -6,6 +6,15 @@ import com.roundeights.skene.{Provider, Bundle, Registry, QueryString}
 import com.roundeights.scalon._
 
 
+/** @see BodyData */
+object BodyData {
+
+    /** Thrown when the submitted data is missing a required key */
+    class MissingKey(key: String) extends Exception(
+        "Request body is missing the '%s' key".format(key)
+    )
+}
+
 /**
  * Parsed content from the request body
  */
@@ -36,8 +45,6 @@ class BodyDataProvider extends Provider[BodyData] {
             // @TODO: Check for the json content type
             case _ => nParser.jsonObj( req.bodyStr )
         }
-
-        println( data.toString )
 
         next.success(new BodyData { override val json = data })
     }
