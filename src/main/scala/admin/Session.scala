@@ -54,6 +54,9 @@ object Auth {
 
     /** Thrown when a page isn't loaded via HTTPs */
     class Insecure extends Exception
+
+    /** Thrown when a user isn't logged in */
+    class VerificationFailed extends Exception
 }
 
 /**

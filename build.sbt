@@ -19,6 +19,7 @@ libraryDependencies ++= Seq(
     "com.roundeights" %% "hasher" % "1.0.0",
     "org.pegdown" % "pegdown" % "1.3.0",
     "com.github.jknack" % "handlebars" % "1.0.0",
+    "net.databinder.dispatch" %% "dispatch-core" % "0.10.1",
     "org.slf4j" % "slf4j-simple" % "1.7.2",
     "javax.servlet" % "javax.servlet-api" % "3.0.1" % "provided"
 )
