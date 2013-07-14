@@ -4,22 +4,20 @@ import scala.concurrent.Promise
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.roundeights.skene.{Provider, Bundle, Registry}
 import com.roundeights.attempt._
-import com.roundeights.scalon.nParser
+import com.roundeights.scalon.{nParser, nObject}
+import com.roundeights.vfunk.Validate
 import dispatch._
 
 /**
  * The result of a Persona verification request
  */
-trait Persona[T] {
+trait Persona {
 
     /** The email address */
     def email: String
 
-    /** The user from the request */
-    def user: T
-
     /** {@inheritDoc} */
-    override def toString = "Persona(%s, %s)".format( email, user.toString )
+    override def toString = "Persona(%s)".format( email )
 }
 
 /**
@@ -27,9 +25,8 @@ trait Persona[T] {
  */
 class PersonaProvider[T] (
     private val audience: String,
-    private val live: Boolean,
-    private val getUser: (String) => Future[Option[T]]
-) extends Provider[Persona[T]] {
+    private val live: Boolean
+) extends Provider[Persona] {
 
     /** {@inheritDoc} */
     override def dependencies: Set[Class[_]] = Set( classOf[BodyData] )
@@ -38,21 +35,19 @@ class PersonaProvider[T] (
     private val verifyURL = "https://verifier.login.persona.org/verify"
 
     /** Sends an auth request off to the person verification URL */
-    private def verify (
-        email: String, assertion: String
-    ): Future[String] = {
+    private def verify ( assertion: String ): Future[nObject] = {
         if ( live ) {
             val request = dispatch.url( verifyURL )
             request << Map( "assertion" -> assertion, "audience" -> audience )
-            Http( request.OK(as.String) )
+            Http( request.OK(as.String) ).map( nParser.jsonObj _ )
         }
         else {
-            Future.successful("""{"status":"ok"}""")
+            Future.successful(nObject("status" -> "ok", "email" -> assertion))
         }
     }
 
     /** {@inheritDoc} */
-    override def build( bundle: Bundle, next: Promise[Persona[T]] ): Unit = {
+    override def build( bundle: Bundle, next: Promise[Persona] ): Unit = {
         val obj = bundle.get[BodyData].json.asObject
 
         for {
@@ -60,48 +55,38 @@ class PersonaProvider[T] (
                 next.failure( new BodyData.MissingKey("assertion") )
             }
 
-            rawEmail <- obj.str_?("email") :: OnFail {
-                next.failure( new BodyData.MissingKey("email") )
-            }
-
-            emailAddr <- TryTo.except {
-                User.email.process( rawEmail ).require.value
-            } onFailMatch {
-                // @TODO: Make this a user error
-                case err: Throwable => next.failure( new Exception(err) )
-            }
-
-            userOpt <- getUser( emailAddr ) :: OnFail.alsoFail( next )
-
-            userObj <- userOpt :: OnFail {
-                // @TODO: Make this an authentication error
-                next.failure( new Exception("User does not exist") )
-            }
-
-            response <- verify(emailAddr, assertion) :: OnFail.alsoFail( next )
-
-            json <- TryTo.except { nParser.jsonObj( response ) } onFailMatch {
-                // @TODO: Make this a user error
-                case err: Throwable => next.failure( new Exception(err) )
-            }
+            json <- verify(assertion) :: OnFail.alsoFail( next )
 
             status <- json.str_?("status") :: OnFail {
                 // @TODO: Customize this exception type
                 next.failure( new Exception(
-                    "Invalid persona response: %s".format( response )
+                    "Persona response missing status: %s".format( json )
                 ))
             }
 
             _ <- ( status == "ok" ) :: OnFail {
                 // @TODO: Customize this exception type
                 next.failure( new Exception(
-                    "Persona response status not ok: %s".format( status )
+                    "Persona response status not ok: %s".format( json )
                 ))
             }
 
-        } next.success( new Persona[T] {
+            emailAddr <- json.str_?("email") :: OnFail {
+                // @TODO: Customize this exception type
+                next.failure( new Exception(
+                    "Persona response missing email: %s: ".format( json )
+                ))
+            }
+
+            _ <- TryTo.except {
+                Validate.email.validate( emailAddr ).require
+            } onFailMatch {
+                // @TODO: Make this a user error
+                case err: Throwable => next.failure( new Exception(err) )
+            }
+
+        } next.success( new Persona {
             override val email = emailAddr
-            override val user = userObj
         } )
 
     }

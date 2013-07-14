@@ -19,17 +19,26 @@ class AuthApiHandler(
 
     // Handle a login attempt
     put("/admin/api/login")(
-        req.use[Persona[User]].in((prereqs, resp, recover) => {
+        req.use[Persona].in((prereqs, resp, recover) => {
+            recover.fromFuture(
+                data.getUserByEmail( prereqs.email )
+            ).onSuccess {
+                case None => recover.orRethrow(
+                    // @TODO: Customize this exception
+                    new Exception("User does not exist")
+                )
+                case Some(user) => {
+                    val cookie = Cookie(
+                        name = "auth",
+                        value = session.token( user ),
+                        domain = Some(env.adminHost),
+                        secure = !env.adminDevMode,
+                        httpOnly = true
+                    )
 
-            val cookie = Cookie(
-                name = "auth",
-                value = session.token( prereqs.user ),
-                domain = Some(env.adminHost),
-                secure = !env.adminDevMode,
-                httpOnly = true
-            )
-
-            resp.cookie( cookie ).json(ok).done
+                    resp.cookie( cookie ).json(ok).done
+                }
+            }
         }
     ))
 
