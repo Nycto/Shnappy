@@ -1,12 +1,9 @@
 package com.roundeights.shnappy.admin
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 import com.roundeights.shnappy.Env
 import com.roundeights.skene._
-import com.roundeights.scalon.{nObject,nParser}
-import com.roundeights.attempt._
-import dispatch._
+import com.roundeights.scalon.nObject
 
 
 /** Authentication handlers */
@@ -17,73 +14,27 @@ class AuthApiHandler(
     private val session: Session
 ) extends Skene {
 
-    /** Sends an auth request off to the person verification URL */
-    private def persona ( email: String, assertion: String ): Future[Unit] = {
-        val persona = dispatch.url(
-            "https://verifier.login.persona.org/verify"
-        )
-        persona << Map(
-            "assertion" -> assertion,
-            "audience" -> "https://%s:443".format( env.adminHost )
-        )
-        Http( persona.OK(as.String) )
-            .map( nParser.jsonObj _ )
-            .map( obj => {
-                if ( obj.str("status") != "okay" )
-                    throw new Auth.VerificationFailed
-                ()
-            })
-    }
-
-    /** Verifyies an email and assertion */
-    private def verify ( email: String, assertion: String ): Future[Unit] = {
-        if ( env.adminDevMode )
-            Future.successful( Unit )
-        else
-            persona( email, assertion )
-    }
-
-    /** Returns the cookie to set for a user */
-    private def cookie ( user: User ) = Cookie(
-        name = "auth",
-        value = session.token( user ),
-        domain = Some(env.adminHost),
-        secure = !env.adminDevMode,
-        httpOnly = true
-    )
+    // A shared status code for a valid response
+    private val ok = nObject("status" -> "ok").toString
 
     // Handle a login attempt
-    put("/admin/api/login")(req.use[BodyData].in((prereqs, resp, recover) => {
-        val obj = prereqs.json.asObject
+    put("/admin/api/login")(
+        req.use[Persona[User]].in((prereqs, resp, recover) => {
 
-        // Extract and validate the pieces from the request
-        for {
-            assertion <- obj.str_?("assertion") :: OnFail {
-                throw new BodyData.MissingKey("assertion")
-            }
+            val cookie = Cookie(
+                name = "auth",
+                value = session.token( prereqs.user ),
+                domain = Some(env.adminHost),
+                secure = !env.adminDevMode,
+                httpOnly = true
+            )
 
-            rawEmail <- obj.str_?("email") :: OnFail {
-                throw new BodyData.MissingKey("email")
-            }
-
-            email <- Some( User.email.process( rawEmail ).require.value )
-
-            userOpt <- recover.fromFuture( data.getUserByEmail( email ) )
-
-            user <- userOpt :: OnFail {
-                throw new Auth.Unauthenticated("Unrecognized email: " + email)
-            }
-
-            _ <- recover.fromFuture( verify( email, assertion ) )
-        } {
-            resp.cookie( cookie(user) )
-                .json( nObject("status" -> "ok").toString )
-                .done
+            resp.cookie( cookie ).json(ok).done
         }
-    }))
+    ))
 
     put("/admin/api/logout")(req.use[Auth].in((prereqs, resp, recover) => {
-        resp.json( nObject("status" -> "ok").toString ).done
+        resp.cookie( Cookie("auth", "", ttl = None) ).json(ok).done
     }))
 
 }

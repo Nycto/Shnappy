@@ -19,6 +19,11 @@ class AdminHandler(
     val prereq = Registry()
         .register[Auth]( new AuthProvider(sessions, data) )
         .register[BodyData]( new BodyDataProvider )
+        .register[Persona[User]]( new PersonaProvider[User](
+            audience = "https://%s:443".format( env.adminHost ),
+            live = env.adminDevMode,
+            getUser = data.getUserByEmail _
+        ))
 
     // Template builder
     val template = baseTemplate.wrap("admin/page", "content")
