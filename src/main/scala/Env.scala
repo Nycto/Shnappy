@@ -95,8 +95,14 @@ class Env (
 
     /** {@inheritDoc} */
     override def toString = {
-        "Env(couch: %s, db: %s, css: %s, js: %s, assets: %s)".format(
-            couchDB, database, css, js, assets
+        val props = Map[String, Any](
+            "couch" -> couchDB, "db" -> database,
+            "css" -> css, "js" -> js, "assets" -> assets,
+            "templates" -> templates,
+            "adminHost" -> adminHost, "adminDevMode" -> adminDevMode
+        )
+        "Env(%s)".format(
+            props.map(pair => "%s: %s".format(pair._1, pair._2)).mkString(", ")
         )
     }
 
