@@ -23,7 +23,7 @@ trait Persona {
 /**
  * Executes a persona verification request
  */
-class PersonaProvider[T] (
+class PersonaProvider (
     private val audience: String,
     private val live: Boolean
 ) extends Provider[Persona] {

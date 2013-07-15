@@ -19,7 +19,7 @@ class AdminHandler(
     val prereq = Registry()
         .register[Auth]( new AuthProvider(sessions, data) )
         .register[BodyData]( new BodyDataProvider )
-        .register[Persona]( new PersonaProvider[User](
+        .register[Persona]( new PersonaProvider(
             audience = "https://%s:443".format( env.adminHost ),
             live = env.adminDevMode
         ))
