@@ -21,7 +21,7 @@ class AdminHandler(
         .register[BodyData]( new BodyDataProvider )
         .register[Persona]( new PersonaProvider(
             audience = "https://%s:443".format( env.adminHost ),
-            live = env.adminDevMode
+            live = !env.adminDevMode
         ))
         .register[AdminTemplate]( new AdminTemplateProvider(baseTemplate) )
 

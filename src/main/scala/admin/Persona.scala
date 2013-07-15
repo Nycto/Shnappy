@@ -31,12 +31,15 @@ class PersonaProvider (
     /** {@inheritDoc} */
     override def dependencies: Set[Class[_]] = Set( classOf[BodyData] )
 
+    // Validates an email address
+    private val emailValid = Validate.email
+
     // The URL to send verification requests to
     private val verifyURL = "https://verifier.login.persona.org/verify"
 
     /** Sends an auth request off to the person verification URL */
     private def verify ( assertion: String ): Future[nObject] = {
-        if ( live ) {
+        if ( live || !emailValid.validate(assertion).isValid ) {
             val request = dispatch.url( verifyURL )
             request << Map( "assertion" -> assertion, "audience" -> audience )
             Http( request.OK(as.String) ).map( nParser.jsonObj _ )
@@ -79,7 +82,7 @@ class PersonaProvider (
             }
 
             _ <- TryTo.except {
-                Validate.email.validate( emailAddr ).require
+                emailValid.validate( emailAddr ).require
             } onFailMatch {
                 // @TODO: Make this a user error
                 case err: Throwable => next.failure( new Exception(err) )
