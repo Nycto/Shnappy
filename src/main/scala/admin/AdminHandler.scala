@@ -23,6 +23,7 @@ class AdminHandler(
             audience = "https://%s:443".format( env.adminHost ),
             live = env.adminDevMode
         ))
+        .register[AdminTemplate]( new AdminTemplateProvider(baseTemplate) )
 
     // Template builder
     val template = baseTemplate.wrap("admin/page", "content")

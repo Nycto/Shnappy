@@ -21,8 +21,8 @@ class PageHtmlHandler (
     val template: Templater, val req: Registry
 ) extends Skene {
 
-    get("/admin/pages")( req.use[Auth].in((prereqs, resp, recover) => {
-        resp.html("ok").done
+    get("/admin/pages")(req.use[AdminTemplate].in((prereqs, resp, recover) => {
+        resp.html( prereqs.template("admin/pages/pages.hbs") ).done
     }))
 }
 
