@@ -20,7 +20,11 @@ class AdminHandler(
         .register[Auth]( new AuthProvider(sessions, data) )
         .register[BodyData]( new BodyDataProvider )
         .register[Persona]( new PersonaProvider(
-            audience = "https://%s:443".format( env.adminHost ),
+            audience = "%s://%s:%d".format(
+                if ( env.adminDevMode ) "http" else "https",
+                env.adminHost,
+                if ( env.adminDevMode ) 8080 else 443
+            ),
             live = !env.adminDevMode
         ))
         .register[AdminTemplate]( new AdminTemplateProvider(baseTemplate) )
@@ -46,14 +50,20 @@ class AdminHandler(
         // Centralized error handler
         error((req, resp) => customErr(resp).orElse({
 
-            case err: BodyData.InvalidContent
-                => formatErr( resp.badRequest, err.getMessage )
+            case err: BodyData.InvalidContent => {
+                err.printStackTrace
+                formatErr( resp.badRequest, err.getMessage )
+            }
 
-            case err: Auth.Unauthenticated
-                => formatErr( resp.unauthorized, "Unauthenticated request" )
+            case err: Auth.Unauthenticated => {
+                err.printStackTrace
+                formatErr( resp.unauthorized, "Unauthenticated request" )
+            }
 
-            case err: Auth.Unauthorized
-                => formatErr( resp.unauthorized, "Unauthorized" )
+            case err: Auth.Unauthorized => {
+                err.printStackTrace
+                formatErr( resp.unauthorized, "Unauthorized" )
+            }
 
             case err: Throwable => {
                 err.printStackTrace
@@ -62,7 +72,8 @@ class AdminHandler(
         }))
 
         // Hook in a default page handler when nothing else matches
-        default( (_: Request, r: Response) => formatErr(r, "404 Not Found") )
+        default( (_: Request, r: Response)
+            => formatErr(r.notFound, "404 Not Found") )
 
         // Fail non-secure requests
         if ( !env.adminDevMode )

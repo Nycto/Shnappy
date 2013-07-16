@@ -52,7 +52,7 @@ class PersonaProvider (
             Http( request.OK(as.String) ).map( nParser.jsonObj _ )
         }
         else {
-            Future.successful(nObject("status" -> "ok", "email" -> assertion))
+            Future.successful(nObject("status" -> "okay", "email" -> assertion))
         }
     }
 
@@ -74,7 +74,7 @@ class PersonaProvider (
                 ))
             }
 
-            _ <- ( status == "ok" ) :: OnFail {
+            _ <- ( status == "okay" ) :: OnFail {
                 next.failure( new Auth.Unauthorized(
                     "Persona response status not ok: %s".format( json )
                 ))

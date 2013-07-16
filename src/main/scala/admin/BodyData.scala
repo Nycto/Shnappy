@@ -45,7 +45,7 @@ class BodyDataProvider extends Provider[BodyData] {
         val req = bundle.request
 
         try {
-            val data: nElement = req.headers.get("Content-Type") match {
+            val data: nElement = req.getContentType match {
                 case Some("application/x-www-form-urlencoded")
                     => nElement( QueryString( req.bodyStr ).toMap )
 
