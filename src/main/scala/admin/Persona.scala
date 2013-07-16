@@ -4,9 +4,16 @@ import scala.concurrent.Promise
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.roundeights.skene.{Provider, Bundle, Registry}
 import com.roundeights.attempt._
-import com.roundeights.scalon.{nParser, nObject}
-import com.roundeights.vfunk.Validate
+import com.roundeights.scalon.{nParser, nObject, nTypeMismatch}
+import com.roundeights.vfunk.{Validate, InvalidValueException}
 import dispatch._
+
+/** @see Persona */
+object Persona {
+
+    /** General Persona errors */
+    class Error( message: String ) extends Exception( message )
+}
 
 /**
  * The result of a Persona verification request
@@ -51,9 +58,17 @@ class PersonaProvider (
 
     /** {@inheritDoc} */
     override def build( bundle: Bundle, next: Promise[Persona] ): Unit = {
-        val obj = bundle.get[BodyData].json.asObject
 
         for {
+
+            obj <- TryTo.except {
+                bundle.get[BodyData].json.asObject
+            } onFailMatch {
+                case err: nTypeMismatch => next.failure(
+                    new BodyData.InvalidContent(err)
+                )
+            }
+
             assertion <- obj.str_?("assertion") :: OnFail {
                 next.failure( new BodyData.MissingKey("assertion") )
             }
@@ -61,22 +76,19 @@ class PersonaProvider (
             json <- verify(assertion) :: OnFail.alsoFail( next )
 
             status <- json.str_?("status") :: OnFail {
-                // @TODO: Customize this exception type
-                next.failure( new Exception(
+                next.failure( new Persona.Error(
                     "Persona response missing status: %s".format( json )
                 ))
             }
 
             _ <- ( status == "ok" ) :: OnFail {
-                // @TODO: Customize this exception type
-                next.failure( new Exception(
+                next.failure( new Auth.Unauthorized(
                     "Persona response status not ok: %s".format( json )
                 ))
             }
 
             emailAddr <- json.str_?("email") :: OnFail {
-                // @TODO: Customize this exception type
-                next.failure( new Exception(
+                next.failure( new Persona.Error(
                     "Persona response missing email: %s: ".format( json )
                 ))
             }
@@ -84,8 +96,13 @@ class PersonaProvider (
             _ <- TryTo.except {
                 emailValid.validate( emailAddr ).require
             } onFailMatch {
-                // @TODO: Make this a user error
-                case err: Throwable => next.failure( new Exception(err) )
+                case err: InvalidValueException => next.failure(
+                    new Persona.Error(
+                        "Invalid Email returned from Persona: %s, %s".format(
+                            emailAddr, err.firstError
+                        )
+                    )
+                )
             }
 
         } next.success( new Persona {

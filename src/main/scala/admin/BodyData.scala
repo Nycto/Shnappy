@@ -9,8 +9,16 @@ import com.roundeights.scalon._
 /** @see BodyData */
 object BodyData {
 
+    /** Thrown when the submitted data is invalid */
+    class InvalidContent(
+        message: String, cause: Throwable
+    ) extends Exception(message) {
+        def this(message: String) = this(message, null)
+        def this(cause: Throwable) = this(null, cause)
+    }
+
     /** Thrown when the submitted data is missing a required key */
-    class MissingKey(key: String) extends Exception(
+    class MissingKey(key: String) extends InvalidContent(
         "Request body is missing the '%s' key".format(key)
     )
 }
@@ -36,17 +44,23 @@ class BodyDataProvider extends Provider[BodyData] {
     override def build( bundle: Bundle, next: Promise[BodyData] ): Unit = {
         val req = bundle.request
 
-        // @TODO: Wrap this in a try catch to make sure parse errors
-        // are a client error
-        val data = req.headers.get("Content-Type") match {
-            case Some("application/x-www-form-urlencoded")
-                => nElement( QueryString( req.bodyStr ).toMap )
+        try {
+            val data: nElement = req.headers.get("Content-Type") match {
+                case Some("application/x-www-form-urlencoded")
+                    => nElement( QueryString( req.bodyStr ).toMap )
 
-            // @TODO: Check for the json content type
-            case _ => nParser.jsonObj( req.bodyStr )
+                // @TODO: Check for the json content type
+                case _ => nParser.json( req.bodyStr )
+            }
+
+            next.success(new BodyData { override val json = data })
+        } catch {
+            case err: nParserException => next.failure(
+                new BodyData.InvalidContent("Invalid JSON: %s".format(
+                    err.getMessage
+                ))
+            )
         }
-
-        next.success(new BodyData { override val json = data })
     }
 }
 

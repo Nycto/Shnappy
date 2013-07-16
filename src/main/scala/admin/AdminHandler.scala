@@ -46,11 +46,14 @@ class AdminHandler(
         // Centralized error handler
         error((req, resp) => customErr(resp).orElse({
 
-            case err: BodyData.MissingKey
+            case err: BodyData.InvalidContent
                 => formatErr( resp.badRequest, err.getMessage )
 
             case err: Auth.Unauthenticated
                 => formatErr( resp.unauthorized, "Unauthenticated request" )
+
+            case err: Auth.Unauthorized
+                => formatErr( resp.unauthorized, "Unauthorized" )
 
             case err: Throwable => {
                 err.printStackTrace
