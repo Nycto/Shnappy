@@ -58,16 +58,9 @@ class PersonaProvider (
 
     /** {@inheritDoc} */
     override def build( bundle: Bundle, next: Promise[Persona] ): Unit = {
+        val obj = bundle.get[BodyData].json.asObject_?.getOrElse( nObject() )
 
         for {
-
-            obj <- TryTo.except {
-                bundle.get[BodyData].json.asObject
-            } onFailMatch {
-                case err: nTypeMismatch => next.failure(
-                    new BodyData.InvalidContent(err)
-                )
-            }
 
             assertion <- obj.str_?("assertion") :: OnFail {
                 next.failure( new BodyData.MissingKey("assertion") )
