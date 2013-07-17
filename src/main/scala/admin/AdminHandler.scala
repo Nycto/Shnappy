@@ -106,8 +106,11 @@ class AdminHandler(
 
         /** {@inheritDoc} */
         override def customErr(resp: Response) = {
-            case err: Auth.Unauthenticated
-                => resp.html( template("admin/login") ).done
+            case err: Auth.Unauthenticated => resp.html(
+                baseTemplate
+                    .wrap("admin/page", "content", "enableLogin" -> true)
+                    .apply("admin/login")
+            ).done
         }
 
         delegate( new PageHtmlHandler(template, prereq) )

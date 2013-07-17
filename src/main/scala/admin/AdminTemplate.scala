@@ -33,7 +33,9 @@ class AdminTemplateProvider (
         next.success( new AdminTemplate {
             override val template = baseTemplate.wrap(
                 "admin/page", "content",
-                "user" -> bundle.get[Auth].user
+                "user" -> bundle.get[Auth].user,
+                "enableLogin" -> true,
+                "email" -> bundle.get[Auth].user.email
             )
         } )
     }
