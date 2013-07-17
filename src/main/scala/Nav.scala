@@ -65,7 +65,9 @@ object NavLink {
 }
 
 /** A link in the navigation */
-class NavLink ( rawUrl: String, rawText: String, val sort: SortKey ) {
+class NavLink (
+    rawUrl: String, rawText: String, val sort: SortKey
+) extends Equals {
 
     /** The filtered and validated link URL */
     val url = NavLink.url.process( rawUrl ).require.value
@@ -73,11 +75,31 @@ class NavLink ( rawUrl: String, rawText: String, val sort: SortKey ) {
     /** The filtered and validated link text */
     val text = NavLink.text.process( rawText ).require.value
 
+    /** Returns this nav instance is a map of data */
+    def toMap: Map[String, String] = Map("url" -> url, "text" -> text)
+
+    /** Sets the URL of this link */
+    def withURL( newURL: String ) = NavLink( newURL, text, sort )
+
     /** {@inheritDoc} */
     override def toString = "NavLink(%s, %s, %s)".format(url, text, sort)
 
-    /** Returns this nav instance is a map of data */
-    def toMap: Map[String, String] = Map("url" -> url, "text" -> text)
+    /** {@inheritDoc} */
+    override def equals ( that: Any ): Boolean = that match {
+        case thatLink: NavLink if thatLink.canEqual(this) => {
+            url == thatLink.url &&
+            text == thatLink.text &&
+            sort == thatLink.sort
+        }
+        case _ => false
+    }
+
+    /** {@inheritDoc} */
+    override def canEqual ( that: Any ) = that.isInstanceOf[NavLink]
+
+    /** {@inheritDoc} */
+    override def hashCode
+        = 41 * ( 41 * ( 41 + url.hashCode ) + text.hashCode ) + sort.hashCode
 }
 
 /** @see RawLink */

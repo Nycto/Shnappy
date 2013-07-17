@@ -59,9 +59,20 @@ class Data ( database: String, private val parser: Parser, couch: CouchDB ) {
             .map( _.headOption.map(doc => Page(doc, parser)) )
     }
 
-    /** Returns the index */
-    def getNavLinks: Future[Seq[NavLink]]
-        = design.view("nav").asc.exec.map(rows => NavLink.parse(rows, parser))
+    /** Returns the list of navigation links */
+    def getNavLinks: Future[Seq[NavLink]] = {
+        val index: Future[Option[NavLink]]
+            = getIndex.map( _.flatMap( _.navLink ) )
+
+        design.view("nav").asc.exec
+            .map( rows => NavLink.parse(rows, parser) )
+            .flatMap( links => index.map({
+                case None => links
+                case Some(indexLink) => links.map( link =>
+                    if (link == indexLink) link.withURL("/") else link
+                )
+            }))
+    }
 
     /** Returns overall info for the site */
     def getSiteInfo: Future[SiteInfo] = {
