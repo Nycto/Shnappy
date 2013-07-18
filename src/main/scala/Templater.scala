@@ -3,7 +3,8 @@ package com.roundeights.shnappy
 import scala.collection.JavaConversions
 
 import com.github.jknack.handlebars.io.FileTemplateLoader
-import com.github.jknack.handlebars.{Handlebars, Context, Helper, Options}
+import com.github.jknack.handlebars.{Handlebars, Helper, Options}
+import com.github.jknack.handlebars.{Context => TplContext}
 import java.io.File
 import java.util.{HashMap => JavaMap}
 
@@ -92,7 +93,7 @@ class BaseTemplater (
             case _ => value
         }
 
-        engine.compile( template ).apply( Context.newBuilder(
+        engine.compile( template ).apply( TplContext.newBuilder(
             JavaConversions.mapAsJavaMap(
                 data.foldLeft( Map[String, Any]() ) {
                     (accum, pair) => accum + (pair._1 -> convert(pair._2))

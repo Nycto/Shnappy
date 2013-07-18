@@ -3,6 +3,7 @@ package com.roundeights.shnappy
 import com.roundeights.shnappy.component.Parser
 import com.roundeights.shnappy.admin.AdminData
 import com.roundeights.foldout._
+import com.roundeights.skene.{Request => SkeneRequest}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
@@ -44,42 +45,47 @@ class Data ( database: String, private val parser: Parser, couch: CouchDB ) {
         "nav" -> "/couchdb/nav"
     ), Duration(3, "second") )
 
-    /** Returns a page */
-    def getPage ( slug: String ): Future[Option[Page]] = {
-        design.view("pagesBySlug").key(slug).limit(1).exec
-            .map( _.headOption.map(doc => Page(doc, parser)) )
-    }
+    /** Returns a new Data instance customized for the given request */
+    def forRequest ( request: SkeneRequest ) = new Request
 
-    /** Saves a page */
-    def savePage ( page: Page ): Future[Written] = db.put( page )
+    /** Provides request specific data access */
+    class Request {
 
-    /** Returns the index */
-    def getIndex: Future[Option[Page]] = {
-        design.view("pagesByIndex").limit(1).desc.exec
-            .map( _.headOption.map(doc => Page(doc, parser)) )
-    }
+        /** Returns a page */
+        def getPage ( slug: String ): Future[Option[Page]] = {
+            design.view("pagesBySlug").key(slug).limit(1).exec
+                .map( _.headOption.map(doc => Page(doc, parser)) )
+        }
 
-    /** Returns the list of navigation links */
-    def getNavLinks: Future[Seq[NavLink]] = {
-        val index: Future[Option[NavLink]]
-            = getIndex.map( _.flatMap( _.navLink ) )
+        /** Returns the index */
+        lazy val getIndex: Future[Option[Page]] = {
+            design.view("pagesByIndex").limit(1).desc.exec
+                .map( _.headOption.map(doc => Page(doc, parser)) )
+        }
 
-        design.view("nav").asc.exec
-            .map( rows => NavLink.parse(rows, parser) )
-            .flatMap( links => index.map({
-                case None => links
-                case Some(indexLink) => links.map( link =>
-                    if (link == indexLink) link.withURL("/") else link
-                )
-            }))
-    }
+        /** Returns the list of navigation links */
+        lazy val getNavLinks: Future[Seq[NavLink]] = {
+            val index: Future[Option[NavLink]]
+                = getIndex.map( _.flatMap( _.navLink ) )
 
-    /** Returns overall info for the site */
-    def getSiteInfo: Future[SiteInfo] = {
-        db.get( SiteInfo.couchKey ).map( _ match {
-            case Some(doc) => SiteInfo(doc)
-            case None => new SiteInfo
-        })
+            design.view("nav").asc.exec
+                .map( rows => NavLink.parse(rows, parser) )
+                .flatMap( links => index.map({
+                    case None => links
+                    case Some(indexLink) => links.map( link =>
+                        if (link == indexLink) link.withURL("/") else link
+                    )
+                }))
+        }
+
+        /** Returns overall info for the site */
+        lazy val getSiteInfo: Future[SiteInfo] = {
+            db.get( SiteInfo.couchKey ).map( _ match {
+                case Some(doc) => SiteInfo(doc)
+                case None => new SiteInfo
+            })
+        }
+
     }
 
 }
