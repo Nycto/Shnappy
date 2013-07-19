@@ -10,21 +10,23 @@ class Renderer (
 ) {
 
     /** Renders the given component type with the given data */
-    def apply ( template: String, data: (String, Any)* ): String
-        = engine( template, Map(data:_*) )
+    def apply ( template: String, values: Map[String, Any] ): String
+        = engine( data.siteInfo.theme + "/" + template, values )
+
+    /** Renders the given component type with the given data */
+    def apply ( template: String, values: (String, Any)* ): String
+        = apply( template, Map(values:_*) )
 
     /** Renders the page level template */
     def renderPage
         ( content: String )
         ( implicit ctx: ExecutionContext )
     : Future[String] = {
-        data.getNavLinks.map( links =>
-            engine.apply( "page",
-                data.siteInfo.toMap +
-                ("content" -> content) +
-                ("nav" -> links.map( _.toMap ))
-            )
-        )
+        data.getNavLinks.map( links => apply("page",
+            data.siteInfo.toMap +
+            ("content" -> content) +
+            ("nav" -> links.map( _.toMap ))
+        ))
     }
 
 }

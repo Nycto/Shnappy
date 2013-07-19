@@ -11,12 +11,20 @@ object SiteInfo {
     private[shnappy] val couchKey = "siteinfo"
 
     /** Creates a new site info instance */
-    def apply ( title: String ) = new SiteInfo( None, Some(title) )
+    def apply ( theme: String, title: String )
+        = new SiteInfo( None, theme, Some(title) )
 
     /** Creates an SiteInfo from a document */
     def apply ( doc: Doc ) = new SiteInfo(
         Some( doc.rev ),
+        doc.str("theme"),
         doc.str_?("title")
+    )
+
+    /** Filter and validation rules for the theme */
+    private[SiteInfo] val theme = TextField( "theme",
+        Filter.chain( Filter.printable, Filter.trim ),
+        Validate.notEmpty
     )
 
     /** Filter and validation rules for the title */
@@ -28,9 +36,13 @@ object SiteInfo {
 
 /** Represents data that applies to the whole site */
 case class SiteInfo (
-    private val revision: Option[String] = None,
-    rawTitle: Option[String] = None
+    private val revision: Option[String],
+    rawTheme: String,
+    rawTitle: Option[String]
 ) extends Documentable {
+
+    /** The filtered and validated theme */
+    val theme = SiteInfo.theme.process( rawTheme ).require.value
 
     /** The filtered and validated title */
     val title = rawTitle.map(
@@ -38,13 +50,17 @@ case class SiteInfo (
     )
 
     /** Returns this instance as a map */
-    def toMap: Map[String, String]
-        = title.map(value => Map("title" -> value)).getOrElse( Map() )
+    def toMap: Map[String, String] = {
+        title.foldLeft( Map("theme" -> theme) ) {
+            (accum, value) => accum + ("title" -> value)
+        }
+    }
 
     /** {@inheritDoc} */
     override def toDoc = Doc(
         "_id" -> SiteInfo.couchKey,
         "_rev" -> revision,
+        "theme" -> theme,
         "title" -> title
     )
 }
