@@ -12,6 +12,9 @@ object SiteEntry {
 
     /** Thrown when a page doesn't exist */
     class NotFound extends Exception
+
+    /** Thrown when a site does not exist in the site */
+    class NoSite extends Exception
 }
 
 /**
@@ -36,14 +39,27 @@ class SiteEntry ( env: Env ) extends Skene {
 
     // Default behavior is to render this as a slug
     default( (recover: Recover, request: Request, response: Response) => {
-        val reqData = data.forRequest(request)
-        new SlugHandler( new Context(
-            reqData, new Renderer( templates, reqData )
-        )).handle( recover, request, response )
+        recover.fromFuture(
+            data.forSite.map {
+                case None => throw new SiteEntry.NoSite
+                case Some(reqData) => new SlugHandler( new Context(
+                    reqData, new Renderer( templates, reqData )
+                )).handle( recover, request, response )
+            }
+        )
     })
 
     // Error handler
     error( (request, response) => {
+        case err: SiteEntry.NoSite => {
+            response.notFound.html(
+                <html>
+                    <head><title>404 Not Found</title></head>
+                    <body><h1>404 Site Not Found</h1></body>
+                </html>
+            ).done
+        }
+
         case err: Throwable => {
             err.printStackTrace
             response.serverError.html(

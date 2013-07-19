@@ -46,10 +46,14 @@ class Data ( database: String, private val parser: Parser, couch: CouchDB ) {
     ), Duration(3, "second") )
 
     /** Returns a new Data instance customized for the given request */
-    def forRequest ( request: SkeneRequest ) = new Request
+    def forSite : Future[Option[Request]] = {
+        db.get( SiteInfo.couchKey ).map( _.map(
+            doc => new Request( SiteInfo(doc) )
+        ) )
+    }
 
     /** Provides request specific data access */
-    class Request {
+    class Request ( val siteInfo: SiteInfo ) {
 
         /** Returns a page */
         def getPage ( slug: String ): Future[Option[Page]] = {
@@ -76,14 +80,6 @@ class Data ( database: String, private val parser: Parser, couch: CouchDB ) {
                         if (link == indexLink) link.withURL("/") else link
                     )
                 }))
-        }
-
-        /** Returns overall info for the site */
-        lazy val getSiteInfo: Future[SiteInfo] = {
-            db.get( SiteInfo.couchKey ).map( _ match {
-                case Some(doc) => SiteInfo(doc)
-                case None => new SiteInfo
-            })
         }
 
     }

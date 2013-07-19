@@ -18,16 +18,13 @@ class Renderer (
         ( content: String )
         ( implicit ctx: ExecutionContext )
     : Future[String] = {
-        val linksFuture = data.getNavLinks
-        val infoFuture = data.getSiteInfo
-
-        linksFuture.flatMap( links => infoFuture.map( info => {
+        data.getNavLinks.map( links =>
             engine.apply( "page",
-                info.toMap +
+                data.siteInfo.toMap +
                 ("content" -> content) +
                 ("nav" -> links.map( _.toMap ))
             )
-        }))
+        )
     }
 
 }
