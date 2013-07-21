@@ -11,14 +11,15 @@ object SiteInfo {
     private[shnappy] val couchKey = "siteinfo"
 
     /** Creates a new site info instance */
-    def apply ( theme: String, title: String )
-        = new SiteInfo( None, theme, Some(title) )
+    def apply ( theme: String, title: String, favicon: Option[String] )
+        = new SiteInfo( None, theme, Some(title), favicon )
 
     /** Creates an SiteInfo from a document */
     def apply ( doc: Doc ) = new SiteInfo(
         Some( doc.rev ),
         doc.str("theme"),
-        doc.str_?("title")
+        doc.str_?("title"),
+        doc.str_?("favicon")
     )
 
     /** Filter and validation rules for the theme */
@@ -38,7 +39,8 @@ object SiteInfo {
 case class SiteInfo (
     private val revision: Option[String],
     rawTheme: String,
-    rawTitle: Option[String]
+    rawTitle: Option[String],
+    val favicon: Option[String]
 ) extends Documentable {
 
     /** The filtered and validated theme */
@@ -61,7 +63,8 @@ case class SiteInfo (
         "_id" -> SiteInfo.couchKey,
         "_rev" -> revision,
         "theme" -> theme,
-        "title" -> title
+        "title" -> title,
+        "favicon" -> favicon
     )
 }
 

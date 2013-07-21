@@ -42,7 +42,7 @@ class SiteEntry ( env: Env ) extends Skene {
         recover.fromFuture(
             data.forSite.map {
                 case None => throw new SiteEntry.NoSite
-                case Some(reqData) => new SlugHandler( new Context(
+                case Some(reqData) => new SiteHandler( env, new Context(
                     reqData, new Renderer( templates, reqData )
                 )).handle( recover, request, response )
             }

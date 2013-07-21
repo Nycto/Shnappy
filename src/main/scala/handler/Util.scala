@@ -18,9 +18,6 @@ class UtilEntry( env: Env ) extends Skene {
     // Load the CSS
     delegate( env.css.handler )
 
-    // Wire up a handler for the favicon
-    get("/favicon.ico")( env.assets.handler )
-
     // Handle a request to robots.txt
     get("/robots.txt")( _.text("User-agent: *\nAllow: /\n").done )
 

@@ -8,9 +8,12 @@ import com.roundeights.attempt._
 import com.roundeights.shnappy._
 
 /**
- * Handles requests to miscellanious pages
+ * Handles requests for site specific content
  */
-class SlugHandler ( private val ctx: Context ) extends Skene {
+class SiteHandler (
+    private val env: Env,
+    private val ctx: Context
+) extends Skene {
 
     /** Renders the given page */
     private def showPage (
@@ -34,6 +37,14 @@ class SlugHandler ( private val ctx: Context ) extends Skene {
             response.ok.html( html ).done
         }
     }
+
+    // Wire up a handler for the favicon
+    get("/favicon.ico")( (request, response) => ctx.favicon match {
+        case Some(path) => env.assets.serve(path, request, response)
+        case None => env.assets.serve(
+            "favicon/%s.ico".format(ctx.theme), request, response
+        )
+    })
 
     // Render the index
     index( (recover, request, response) => {
