@@ -32,7 +32,7 @@ object Data {
 class Data ( database: String, private val parser: Parser, couch: CouchDB ) {
 
     // Make sure the database exists
-    val db = couch.db( database )
+    private val db = couch.db( database )
     db.createNow
 
     /** Admin data access */
@@ -45,6 +45,9 @@ class Data ( database: String, private val parser: Parser, couch: CouchDB ) {
         "pagesByIndex" -> "/couchdb/pagesByIndex",
         "nav" -> "/couchdb/nav"
     ), Duration(3, "second") )
+
+    /** Shutsdown this connection */
+    def close: Unit = couch.close
 
     /** Returns a new Data instance customized for the given host */
     def forSite( host: String ): Future[Option[Request]] = {

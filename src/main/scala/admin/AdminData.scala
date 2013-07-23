@@ -27,7 +27,7 @@ class AdminData ( private val db: Database ) {
     def getUser ( uuid: UUID ): Future[Option[User]]
         = db.get( uuid.toString ).map( _.map( doc => User(doc) ) )
 
-    /** Saves a User */
-    def saveUser ( user: User ): Future[Written] = db.put( user )
+    /** Saves a document */
+    def save ( doc: Documentable ): Future[Written] = db.put( doc )
 }
 
