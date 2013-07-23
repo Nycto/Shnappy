@@ -8,5 +8,7 @@ function (doc) {
         return (+value);
     });
 
+    sort.unshift( doc.siteID );
+
     emit( sort, doc );
 }

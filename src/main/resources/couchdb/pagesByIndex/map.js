@@ -3,5 +3,5 @@
  */
 function (doc) {
     if ( doc.markedIndex )
-        emit( doc.markedIndex, doc );
+        emit( [doc.siteID, doc.markedIndex], doc );
 }

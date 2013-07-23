@@ -3,7 +3,7 @@ package com.roundeights.shnappy
 import com.roundeights.shnappy.component.Parser
 import com.roundeights.shnappy.admin.AdminData
 import com.roundeights.foldout._
-import com.roundeights.skene.{Request => SkeneRequest}
+import com.roundeights.scalon._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
@@ -63,13 +63,18 @@ class Data ( database: String, private val parser: Parser, couch: CouchDB ) {
 
         /** Returns a page */
         def getPage ( slug: String ): Future[Option[Page]] = {
-            design.view("pagesBySlug").key(slug).limit(1).exec
+            design.view("pagesBySlug")
+                .key( siteInfo.id.toString, slug )
+                .limit(1).exec
                 .map( _.headOption.map(doc => Page(doc, parser)) )
         }
 
         /** Returns the index */
         lazy val getIndex: Future[Option[Page]] = {
-            design.view("pagesByIndex").limit(1).desc.exec
+            design.view("pagesByIndex")
+                .startKey( siteInfo.id.toString, nObject() )
+                .endKey( siteInfo.id.toString, nNull() )
+                .limit(1).desc.exec
                 .map( _.headOption.map(doc => Page(doc, parser)) )
         }
 
@@ -78,7 +83,10 @@ class Data ( database: String, private val parser: Parser, couch: CouchDB ) {
             val index: Future[Option[NavLink]]
                 = getIndex.map( _.flatMap( _.navLink ) )
 
-            design.view("nav").asc.exec
+            design.view("nav")
+                .startKey( siteInfo.id.toString, nNull() )
+                .endKey( siteInfo.id.toString, nObject() )
+                .asc.exec
                 .map( rows => NavLink.parse(rows, parser) )
                 .flatMap( links => index.map({
                     case None => links

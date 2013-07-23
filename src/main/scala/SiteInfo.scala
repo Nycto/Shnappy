@@ -61,7 +61,7 @@ object SiteInfo {
 
 /** Represents data that applies to the whole site */
 case class SiteInfo (
-    private val id: UUID,
+    val id: UUID,
     private val revision: Option[String],
     rawTheme: String,
     rawTitle: Option[String],

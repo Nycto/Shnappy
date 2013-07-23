@@ -11,13 +11,15 @@ import java.util.{UUID, Date}
 object Page {
 
     /** Creates a new Page */
-    def apply ( title: String, slug: String )
-        = new Page( UUID.randomUUID, None, title, slug, Nil, None, None )
+    def apply ( siteID: UUID, title: String, slug: String ) = new Page(
+        UUID.randomUUID, None, siteID, title, slug, Nil, None, None
+    )
 
     /** Creates a Page from a document and a parser */
     def apply ( doc: Doc, parser: Parser ) = new Page(
         UUID.fromString( doc.id ),
         Some( doc.rev ),
+        UUID.fromString( doc.str("siteID") ),
         doc.str("title"),
         doc.str("slug"),
         parser.parse( doc.ary("content") ),
@@ -47,6 +49,7 @@ object Page {
 case class Page (
     private val id: UUID,
     private val revision: Option[String],
+    val siteID: UUID,
     rawTitle: String,
     rawSlug: String,
     val content: Seq[Component],
@@ -73,7 +76,7 @@ case class Page (
 
     /** Returns a copy of this Page, but marked as the index */
     def setIndex( mark: Boolean ): Page = Page(
-        id, revision, title, slug, content,
+        id, revision, siteID, title, slug, content,
         if ( mark ) Some( new Date ) else None,
         navSort
     )
@@ -83,7 +86,7 @@ case class Page (
 
     /** Sets the sort position of this page */
     def setNavSort( sort: Option[String] ): Page = Page(
-        id, revision, title, slug, content, markedIndex,
+        id, revision, siteID, title, slug, content, markedIndex,
         sort.map(key => new SortKey(key))
     )
 
@@ -91,13 +94,15 @@ case class Page (
     def setNavSort( sort: String ): Page = setNavSort( Some(sort) )
 
     /** Sets the content of this page */
-    def setContent( newContent: Seq[Component] )
-        = Page(id, revision, title, slug, newContent, markedIndex, navSort)
+    def setContent( newContent: Seq[Component] ) = Page(
+        id, revision, siteID, title, slug, newContent, markedIndex, navSort
+    )
 
     /** {@inheritDoc} */
     override def toDoc = Doc(
         "_id" -> id.toString,
         "_rev" -> revision,
+        "siteID" -> siteID.toString,
         "type" -> "page",
         "title" -> title,
         "slug" -> slug,

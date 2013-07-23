@@ -106,9 +106,9 @@ class NavLink (
 object RawLink {
 
     /** Creates a new link */
-    def apply ( url: String, text: String, sort: String ) = {
+    def apply ( siteID: UUID, url: String, text: String, sort: String ) = {
         new RawLink(
-            UUID.randomUUID, None,
+            UUID.randomUUID, None, siteID,
             NavLink( url, text, new SortKey(sort) )
         )
     }
@@ -117,6 +117,7 @@ object RawLink {
     def apply ( doc: Doc ) = new RawLink(
         UUID.fromString( doc.id ),
         Some( doc.rev ),
+        UUID.fromString( doc.str("siteID") ),
         NavLink(
             doc.str("url"), doc.str("text"),
             new SortKey( doc.str("navSort") )
@@ -128,6 +129,7 @@ object RawLink {
 case class RawLink (
     private val id: UUID,
     private val revision: Option[String],
+    val siteID: UUID,
     val link: NavLink
 ) extends Documentable {
 
@@ -136,6 +138,7 @@ case class RawLink (
         "_id" -> id.toString,
         "_rev" -> revision,
         "type" -> "link",
+        "siteID" -> siteID.toString,
         "text" -> link.text,
         "url" -> link.url,
         "navSort" -> link.sort.toString

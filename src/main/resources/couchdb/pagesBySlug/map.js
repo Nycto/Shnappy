@@ -3,5 +3,5 @@
  */
 function (doc) {
     if ( doc.slug )
-        emit( doc.slug, doc );
+        emit( [doc.siteID, doc.slug], doc );
 }
