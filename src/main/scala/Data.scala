@@ -40,16 +40,19 @@ class Data ( database: String, private val parser: Parser, couch: CouchDB ) {
 
     // Design interface
     private val design = Await.result( db.designDir( classOf[Data],
+        "siteInfoByHost" -> "/couchdb/siteInfoByHost",
         "pagesBySlug" -> "/couchdb/pagesBySlug",
         "pagesByIndex" -> "/couchdb/pagesByIndex",
         "nav" -> "/couchdb/nav"
     ), Duration(3, "second") )
 
-    /** Returns a new Data instance customized for the given request */
-    def forSite : Future[Option[Request]] = {
-        db.get( SiteInfo.couchKey ).map( _.map(
-            doc => new Request( SiteInfo(doc) )
-        ) )
+    /** Returns a new Data instance customized for the given host */
+    def forSite( host: String ): Future[Option[Request]] = {
+        design.view("siteInfoByHost").limit(1).key(
+            SiteInfo.host.process( host ).require.value
+        ).exec.map(
+            _.headOption.map( doc => new Request( SiteInfo(doc) ) )
+        )
     }
 
     /** Provides request specific data access */

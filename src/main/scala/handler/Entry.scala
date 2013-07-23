@@ -40,7 +40,7 @@ class SiteEntry ( env: Env ) extends Skene {
     // Default behavior is to render this as a slug
     default( (recover: Recover, request: Request, response: Response) => {
         recover.fromFuture(
-            data.forSite.map {
+            data.forSite( request.url.host ).map {
                 case None => throw new SiteEntry.NoSite
                 case Some(reqData) => new SiteHandler( env, new Context(
                     reqData, new Renderer( templates, reqData )

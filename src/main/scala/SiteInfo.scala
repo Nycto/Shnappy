@@ -1,25 +1,27 @@
 package com.roundeights.shnappy
 
 import com.roundeights.foldout.{Doc, Documentable}
-import com.roundeights.vfunk.{Validate, Filter, TextField}
+import com.roundeights.vfunk.{Validate, Filter, TextField, Err}
 import java.util.UUID
 
 /** @see SiteInfo */
 object SiteInfo {
 
-    /** The key under which to save the site info */
-    private[shnappy] val couchKey = "siteinfo"
-
     /** Creates a new site info instance */
-    def apply ( theme: String, title: String, favicon: Option[String] )
-        = new SiteInfo( None, theme, Some(title), favicon )
+    def apply (
+        theme: String, title: String, favicon: Option[String], host: String
+    ) = new SiteInfo(
+        UUID.randomUUID, None, theme, Some(title), favicon, Set( host )
+    )
 
     /** Creates an SiteInfo from a document */
     def apply ( doc: Doc ) = new SiteInfo(
+        UUID.fromString( doc.id ),
         Some( doc.rev ),
         doc.str("theme"),
         doc.str_?("title"),
-        doc.str_?("favicon")
+        doc.str_?("favicon"),
+        doc.ary_?("hosts").map( _.map( _.asString ).toSet ).getOrElse( Set() )
     )
 
     /** Filter and validation rules for the theme */
@@ -33,22 +35,51 @@ object SiteInfo {
         Filter.chain( Filter.printable, Filter.trim ),
         Validate.notEmpty
     )
+
+    /** Filter and validation rules for hosts */
+    val host = TextField( "host",
+        Filter.chain(
+            Filter.trim, Filter.lower,
+            Filter.characters( Set('.', '-') ++ ('a' to 'z') ++ ('0' to '9') ),
+            Filter.callback(host =>
+                if ( host.startsWith("www.") ) host.drop(4) else host
+            )
+        ),
+        Validate.and(
+            Validate.notEmpty,
+            Validate.invoke( host =>
+                Some( Err("HOST", "Host name must not start with a period") )
+                    .filter( _ => host.startsWith(".") )
+            ),
+            Validate.invoke( host =>
+                Some( Err("HOST", "Host name must not end with a period") )
+                    .filter( _ => host.endsWith(".") )
+            )
+        )
+    )
 }
 
 /** Represents data that applies to the whole site */
 case class SiteInfo (
+    private val id: UUID,
     private val revision: Option[String],
     rawTheme: String,
     rawTitle: Option[String],
-    val favicon: Option[String]
+    val favicon: Option[String],
+    rawHosts: Set[String]
 ) extends Documentable {
 
     /** The filtered and validated theme */
-    val theme = SiteInfo.theme.process( rawTheme ).require.value
+    val theme: String = SiteInfo.theme.process( rawTheme ).require.value
 
     /** The filtered and validated title */
-    val title = rawTitle.map(
+    val title: Option[String] = rawTitle.map(
         value => SiteInfo.title.process( value ).require.value
+    )
+
+    /** The filtered and validated title */
+    val hosts: Set[String] = rawHosts.map(
+        value => SiteInfo.host.process( value ).require.value
     )
 
     /** Returns this instance as a map */
@@ -60,11 +91,13 @@ case class SiteInfo (
 
     /** {@inheritDoc} */
     override def toDoc = Doc(
-        "_id" -> SiteInfo.couchKey,
+        "_id" -> id.toString,
         "_rev" -> revision,
+        "type" -> "siteinfo",
         "theme" -> theme,
         "title" -> title,
-        "favicon" -> favicon
+        "favicon" -> favicon,
+        "hosts" -> hosts
     )
 }
 
