@@ -3,10 +3,7 @@ package com.roundeights.shnappy
 /**
  * Represents contextual information for the current page load
  */
-class Context (
-    val data: Data#Request,
-    val renderer: Renderer
-) {
+class Context ( val data: SiteData, val renderer: Renderer ) {
 
     /** The site info instance */
     def siteInfo = data.siteInfo

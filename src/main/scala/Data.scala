@@ -50,27 +50,27 @@ class Data ( database: String, private val parser: Parser, couch: CouchDB ) {
     def close: Unit = couch.close
 
     /** Returns a new Data instance customized for the given host */
-    def forSite( host: String ): Future[Option[Request]] = {
+    def forSite( host: String ): Future[Option[SiteData]] = {
         design.view("siteInfoByHost").limit(1).key(
             SiteInfo.host.process( host ).require.value
         ).exec.map(
-            _.headOption.map( doc => new Request( SiteInfo(doc) ) )
+            _.headOption.map( doc => new LiveSiteData( SiteInfo(doc) ) )
         )
     }
 
     /** Provides request specific data access */
-    class Request ( val siteInfo: SiteInfo ) {
+    class LiveSiteData ( override val siteInfo: SiteInfo ) extends SiteData {
 
-        /** Returns a page */
-        def getPage ( slug: String ): Future[Option[Page]] = {
+        /** {@inheritDoc} */
+        override def getPage ( slug: String ): Future[Option[Page]] = {
             design.view("pagesBySlug")
                 .key( siteInfo.id.toString, slug )
                 .limit(1).exec
                 .map( _.headOption.map(doc => Page(doc, parser)) )
         }
 
-        /** Returns the index */
-        lazy val getIndex: Future[Option[Page]] = {
+        /** {@inheritDoc} */
+        override lazy val getIndex: Future[Option[Page]] = {
             design.view("pagesByIndex")
                 .startKey( siteInfo.id.toString, nObject() )
                 .endKey( siteInfo.id.toString, nNull() )
@@ -78,8 +78,8 @@ class Data ( database: String, private val parser: Parser, couch: CouchDB ) {
                 .map( _.headOption.map(doc => Page(doc, parser)) )
         }
 
-        /** Returns the list of navigation links */
-        lazy val getNavLinks: Future[Seq[NavLink]] = {
+        /** {@inheritDoc} */
+        override lazy val getNavLinks: Future[Seq[NavLink]] = {
             val index: Future[Option[NavLink]]
                 = getIndex.map( _.flatMap( _.navLink ) )
 
