@@ -51,10 +51,12 @@ class Data ( database: String, private val parser: Parser, couch: CouchDB ) {
 
     /** Returns a new Data instance customized for the given host */
     def forSite( host: String ): Future[Option[SiteData]] = {
-        design.view("siteInfoByHost").limit(1).key(
-            SiteInfo.host.process( host ).require.value
-        ).exec.map(
-            _.headOption.map( doc => new LiveSiteData( SiteInfo(doc) ) )
+        val cleanHost = SiteInfo.host.process( host ).require.value
+
+        design.view("siteInfoByHost").limit(1).key( cleanHost ).exec.map(
+            _.headOption.map( doc => SiteInfo(doc) ).map( info => {
+                new SiteDataCache( new LiveSiteData(info) )
+            } )
         )
     }
 
