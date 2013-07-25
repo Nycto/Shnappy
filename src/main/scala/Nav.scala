@@ -141,7 +141,8 @@ case class RawLink (
         "siteID" -> siteID.toString,
         "text" -> link.text,
         "url" -> link.url,
-        "navSort" -> link.sort.toString
+        "navSort" -> link.sort.toString,
+        "updated" -> DateGen.formatNow
     )
 }
 

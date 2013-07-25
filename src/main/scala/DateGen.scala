@@ -25,4 +25,7 @@ object DateGen {
     /** Converts a date to a string */
     def format ( date: Date ): String = output.format( date )
 
+    /** Formats the current time */
+    def formatNow: String = format( new Date )
+
 }

@@ -97,7 +97,8 @@ case class SiteInfo (
         "theme" -> theme,
         "title" -> title,
         "favicon" -> favicon,
-        "hosts" -> hosts
+        "hosts" -> hosts,
+        "updated" -> DateGen.formatNow
     )
 }
 

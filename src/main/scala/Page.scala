@@ -108,7 +108,8 @@ case class Page (
         "slug" -> slug,
         "content" -> content.foldRight( nList() )( _.serialize :: _ ),
         "markedIndex" -> markedIndex.map( DateGen.format _ ),
-        "navSort" -> navSort.map( _.toString )
+        "navSort" -> navSort.map( _.toString ),
+        "updated" -> DateGen.formatNow
     )
 }
 
