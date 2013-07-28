@@ -8,6 +8,7 @@ import com.roundeights.scalon._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent._
+import java.util.{UUID, Date}
 
 /** @see Data */
 object Data {
@@ -37,6 +38,9 @@ trait Data {
     /** Shutsdown this connection */
     def close: Unit
 
+    /** Returns when a site was last updated */
+    def lastUpdate ( siteID: UUID ): Future[Option[Date]]
+
     /** Returns when the SiteData instance given a host name */
     def forSite( host: String ): Future[Option[SiteData]]
 }
@@ -57,7 +61,8 @@ class LiveData (
         "siteInfoByHost" -> "/couchdb/siteInfoByHost",
         "pagesBySlug"    -> "/couchdb/pagesBySlug",
         "pagesByIndex"   -> "/couchdb/pagesByIndex",
-        "nav"            -> "/couchdb/nav"
+        "nav"            -> "/couchdb/nav",
+        "lastUpdated"    -> "/couchdb/lastUpdated"
     ), Duration(3, "second") )
 
     /** {@inheritDoc} */
@@ -65,6 +70,15 @@ class LiveData (
 
     /** {@inheritDoc} */
     def close: Unit = couch.close
+
+    /** {@inheritDoc} */
+    override def lastUpdate ( siteID: UUID ): Future[Option[Date]] = {
+        design.view("lastUpdated")
+            .limit(1).group.key( siteID.toString ).exec
+            .map( _.headOption.map(
+                doc => DateGen.parse( doc.str("updated") )
+            ) )
+    }
 
     /** Fetches down the SiteInfo object for a host name */
     private def getSiteInfo ( host: String ): Future[Option[SiteInfo]] = {
