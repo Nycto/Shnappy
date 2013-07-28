@@ -120,7 +120,7 @@ object RawLink {
         UUID.fromString( doc.str("siteID") ),
         NavLink(
             doc.str("url"), doc.str("text"),
-            new SortKey( doc.str("navSort") )
+            new SortKey( doc.get("navSort").asString )
         )
     )
 }

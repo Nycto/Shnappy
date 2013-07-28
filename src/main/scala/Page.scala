@@ -24,7 +24,7 @@ object Page {
         doc.str("slug"),
         parser.parse( doc.ary("content") ),
         doc.str_?("markedIndex").map( DateGen.parse _ ),
-        doc.str_?("navSort").map( value => new SortKey(value) )
+        doc.get_?("navSort").map( value => new SortKey(value.asString) )
     )
 
     /** Filter and validation rules for a slug */

@@ -4,7 +4,7 @@
 function (doc) {
     if ( !doc.navSort ) return;
 
-    var sort = doc.navSort.split(/[\-\.\s]/).map(function (value) {
+    var sort = ("" + doc.navSort).split(/[\-\.\s]/).map(function (value) {
         return (+value);
     });
 
