@@ -30,24 +30,25 @@ class SiteDataCache
 extends SiteData {
 
     /** A cache of page data by slug */
-    private val pages = new LazyMap[String, Option[Page]](inner.getPage _)
+    private val pages = new LazyMap[String, Option[Page]]
 
     /** The index */
-    private val index = new LazyRef( () => inner.getIndex )
+    private val index = new LazyRef[Option[Page]]
 
     /** Nav links */
-    private val navLinks = new LazyRef( () => inner.getNavLinks )
+    private val navLinks = new LazyRef[Seq[NavLink]]
 
     /** {@inheritDoc} */
     override def siteInfo: SiteInfo = inner.siteInfo
 
     /** {@inheritDoc} */
-    override def getPage ( slug: String ) = pages.get( slug )
+    override def getPage ( slug: String )
+        = pages.get( slug, () => inner.getPage(slug) )
 
     /** {@inheritDoc} */
-    override def getIndex = index()
+    override def getIndex = index( inner.getIndex )
 
     /** {@inheritDoc} */
-    override def getNavLinks = navLinks()
+    override def getNavLinks = navLinks( inner.getNavLinks )
 }
 
