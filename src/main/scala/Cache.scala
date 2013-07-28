@@ -84,3 +84,59 @@ private[shnappy] class LazyMap[K,V] ( implicit val ctx: ExecutionContext ) {
     }
 }
 
+/** @see LazyNegativeMap */
+object LazyNegativeMap {
+
+    /** A combined type that contains both the build and isFresh methods */
+    trait Builder[V] {
+
+        /** Fetches fresh data from source */
+        def build: Future[Option[V]]
+
+        /** Checks whether an existing cache value is fresh */
+        def isFresh ( data: V ): Future[Boolean]
+    }
+}
+
+/**
+ * A cache that handles caching negative values for a given TTL
+ */
+private[shnappy] class LazyNegativeMap[K,V] ( private val ttl: Int ) (
+    implicit val ctx: ExecutionContext
+) {
+
+    /** A cache of page data by slug */
+    private val cache = new LazyMap[K, Either[Date,V]]
+
+    /** The internal */
+    private class CallbackAdapter (
+        private val callback: LazyNegativeMap.Builder[V]
+    ) extends LazyMap.Builder[Either[Date,V]] {
+
+        /** {@inheritDoc} */
+        override def build = callback.build.map( _ match {
+            case None => Left( new Date( new Date().getTime + ttl ) )
+            case Some(value) => Right( value )
+        } )
+
+        /** {@inheritDoc} */
+        override def isFresh( data: Either[Date,V] ) = data match {
+            case Left(expire) => Future.successful(
+                expire.before( new Date )
+            )
+            case Right(value) => callback.isFresh(value)
+        }
+    }
+
+    /** Returns a future reference for the given key */
+    def get (
+        key: K, callback: LazyNegativeMap.Builder[V]
+    ): Future[Option[V]] = {
+        cache.get( key, new CallbackAdapter(callback) ).map( _ match {
+            case Left(_) => None
+            case Right(value) => Some(value)
+        })
+    }
+
+}
+
