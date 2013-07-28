@@ -14,7 +14,7 @@ import java.util.{UUID, Date}
 object Data {
 
     /** Returns a shared data instance */
-    def apply( env: Env, parser: Parser ): Data = new LiveData(
+    def apply( env: Env, parser: Parser ): Data = new DataCache( new LiveData(
         env.database,
         parser,
         env.couchDB match {
@@ -24,7 +24,7 @@ object Data {
                 conf.apiKey, conf.password, Some(conf.username)
             )
         }
-    )
+    ))
 }
 
 /**
@@ -105,7 +105,7 @@ class LiveData (
         }
 
         /** {@inheritDoc} */
-        override lazy val getIndex: Future[Option[Page]] = {
+        override def getIndex: Future[Option[Page]] = {
             design.view("pagesByIndex")
                 .startKey( siteInfo.id.toString, nObject() )
                 .endKey( siteInfo.id.toString, nNull() )
@@ -114,7 +114,7 @@ class LiveData (
         }
 
         /** {@inheritDoc} */
-        override lazy val getNavLinks: Future[Seq[NavLink]] = {
+        override def getNavLinks: Future[Seq[NavLink]] = {
             val index: Future[Option[NavLink]]
                 = getIndex.map( _.flatMap( _.navLink ) )
 
@@ -132,6 +132,57 @@ class LiveData (
         }
     }
 
+}
+
+/**
+ * Caches the SiteData instance for a host
+ */
+class DataCache( private val inner: Data ) extends Data {
+
+    /** A cache of SiteData objects keyed by host name */
+    private val cache = new LazyNegativeMap[String, (Date, SiteData)]( 240000 )
+
+    /** The date to use when a last update isn't available */
+    private val defaultUpdate = new Date
+
+    /** {@inheritDoc} */
+    def admin: AdminData = inner.admin
+
+    /** {@inheritDoc} */
+    def close: Unit = inner.close
+
+    /** {@inheritDoc} */
+    override def lastUpdate ( siteID: UUID ) = inner.lastUpdate( siteID )
+
+    /** The callback to use for filling the cache */
+    private class Callback (
+        private val host: String
+    ) extends LazyNegativeMap.Builder[(Date, SiteData)] {
+
+        /** Returns the last update for the given site info */
+        private def lastUpdate( info: SiteInfo ): Future[Date]
+            = inner.lastUpdate( info.id ).map( _.getOrElse( defaultUpdate ) )
+
+        /** Fetches fresh data from source */
+        override def build: Future[Option[(Date, SiteData)]] = {
+            inner.forSite(host).flatMap( _ match {
+                case None => Future.successful( None )
+                case Some(data) => lastUpdate( data.siteInfo ).map(
+                    updated => Some( updated -> new SiteDataCache(data) )
+                )
+            })
+        }
+
+        /** Checks whether an existing cache value is fresh */
+        override def isFresh( data: (Date, SiteData) ): Future[Boolean]
+            = lastUpdate( data._2.siteInfo ).map( !_.after( data._1 ) )
+    }
+
+    /** {@inheritDoc} */
+    override def forSite( host: String ): Future[Option[SiteData]] = {
+        val cleanHost = SiteInfo.host.process(host).require.value
+        cache.get( cleanHost, new Callback( cleanHost ) ).map( _.map( _._2 ) )
+    }
 }
 
 
