@@ -17,7 +17,20 @@ trait SiteData {
     def getIndex: Future[Option[Page]]
 
     /** Returns the list of navigation links */
-    def getNavLinks: Future[Seq[NavLink]]
+    protected def getRawNavLinks: Future[Seq[NavLink]]
+
+    /** Returns the list of navigation links */
+    def getNavLinks( implicit ctx: ExecutionContext ): Future[Seq[NavLink]] = {
+        val index = getIndex.map( _.flatMap( _.navLink ) )
+
+        getRawNavLinks.flatMap( links => index.map({
+            case None => links
+            case Some(indexLink) => links.map( link =>
+                if (link == indexLink) link.withURL("/") else link
+            )
+        }))
+    }
+
 }
 
 
@@ -49,6 +62,6 @@ extends SiteData {
     override def getIndex = index( inner.getIndex )
 
     /** {@inheritDoc} */
-    override def getNavLinks = navLinks( inner.getNavLinks )
+    override protected def getRawNavLinks = navLinks( inner.getNavLinks )
 }
 

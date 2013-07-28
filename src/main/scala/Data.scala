@@ -114,21 +114,12 @@ class LiveData (
         }
 
         /** {@inheritDoc} */
-        override def getNavLinks: Future[Seq[NavLink]] = {
-            val index: Future[Option[NavLink]]
-                = getIndex.map( _.flatMap( _.navLink ) )
-
+        override protected def getRawNavLinks: Future[Seq[NavLink]] = {
             design.view("nav")
                 .startKey( siteInfo.id.toString, nNull() )
                 .endKey( siteInfo.id.toString, nObject() )
                 .asc.exec
                 .map( rows => NavLink.parse(rows, parser) )
-                .flatMap( links => index.map({
-                    case None => links
-                    case Some(indexLink) => links.map( link =>
-                        if (link == indexLink) link.withURL("/") else link
-                    )
-                }))
         }
     }
 
