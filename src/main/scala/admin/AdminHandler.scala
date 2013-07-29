@@ -92,8 +92,10 @@ class AdminHandler(
             ).toString ).done
         }
 
-        delegate( new PageApiHandler(prereq) )
         delegate( new AuthApiHandler(prereq, env, data, sessions) )
+        delegate( new ContentApiHandler(prereq, data) )
+        delegate( new SiteApiHandler(prereq, data) )
+        delegate( new UserApiHandler(prereq, data) )
     })
 
 
@@ -113,7 +115,7 @@ class AdminHandler(
             ).done
         }
 
-        delegate( new PageHtmlHandler(template, prereq) )
+        delegate( new ContentHtmlHandler(template, prereq) )
     })
 
 }
