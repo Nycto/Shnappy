@@ -78,9 +78,23 @@ trait Auth {
  * Builds a logged in user
  */
 class AuthProvider (
+    private val live: Boolean,
     private val session: Session,
     private val data: AdminData
 ) extends Provider[Auth] {
+
+    /** Extracts the user ID from a token */
+    private def extractUserID ( cookie: String ): Option[UUID] = {
+        if ( live ) {
+            session.checkToken( cookie )
+        }
+        else try {
+            Some( UUID.fromString(cookie) )
+        }
+        catch {
+            case _: IllegalArgumentException => session.checkToken( cookie )
+        }
+    }
 
     /** {@inheritDoc} */
     override def build( bundle: Bundle, next: Promise[Auth] ): Unit = {
@@ -94,7 +108,7 @@ class AuthProvider (
             }
 
             // Pull the user ID out of the cookie
-            userID <- session.checkToken( cookie.value ) :: OnFail {
+            userID <- extractUserID( cookie.value ) :: OnFail {
                 next.failure( new Auth.Unauthenticated("Invalid auth cookie") )
             }
 
