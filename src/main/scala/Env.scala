@@ -6,7 +6,6 @@ import com.roundeights.scalon.nParser
 import com.roundeights.hasher.Algo
 import com.roundeights.skene.static.AssetLoader
 import scala.concurrent.ExecutionContext.Implicits.global
-import com.github.jknack.handlebars.io._
 
 /**
  * Environment information
@@ -35,9 +34,7 @@ object Env {
             ),
             js = AssetLoader.fromDir( rootDir, "js" ),
             assets = AssetLoader.fromDir( rootDir, "assets" ),
-            templates = new FileTemplateLoader(
-                new File( rootDir, "templates" ).getAbsoluteFile
-            ),
+            templates = Templater.inDir( new File(rootDir, "templates") ),
             adminHost = "127.0.0.1",
             adminDevMode = true
         )
@@ -66,13 +63,7 @@ object Env {
         css = AssetLoader.fromJar( mainClazz, "css" ),
         js = AssetLoader.fromJar( mainClazz, "js" ),
         assets = AssetLoader.fromJar( mainClazz, "assets" ),
-        templates = new URLTemplateLoader {
-            override def getResource( location: String ) = {
-                mainClazz.getResource(
-                    "/templates/" + location.dropWhile(_ == '/')
-                )
-            }
-        },
+        templates = Templater.inJar( mainClazz, "templates" ),
         adminHost = require(settings, "ADMIN_HOST"),
         secret = settings("SECRET_KEY")
     )
@@ -87,7 +78,7 @@ class Env (
     val css: AssetLoader,
     val js: AssetLoader,
     val assets: AssetLoader,
-    val templates: TemplateLoader,
+    val templates: Templater.Finder,
     val adminHost: String,
     val adminDevMode: Boolean = false,
     secret: Option[String] = None

@@ -2,7 +2,7 @@ package com.roundeights.shnappy
 
 import scala.collection.JavaConversions
 
-import com.github.jknack.handlebars.io.FileTemplateLoader
+import com.github.jknack.handlebars.io._
 import com.github.jknack.handlebars.{Handlebars, Helper, Options}
 import com.github.jknack.handlebars.{Context => TplContext}
 import java.io.File
@@ -12,7 +12,28 @@ import java.util.{HashMap => JavaMap}
 object Templater {
 
     /** Constructs a new instance */
-    def apply( env: Env ) = new BaseTemplater( env )
+    def apply( env: Env ) = new BaseTemplater( env.templates )
+
+    /** The type for a template */
+    type Finder = TemplateLoader
+
+    /** A template finder that looks in a directory */
+    def inDir ( root: File ): Finder = new FileTemplateLoader( root )
+
+    /** Looks for a template using a class loader */
+    def inJar( clazz: Class[_], subdir: String ): Finder = {
+        val cleanSubdir
+            = subdir.dropWhile(_ == '/').reverse.dropWhile(_ == '/').reverse
+
+        new URLTemplateLoader {
+            override def getResource( path: String ) = {
+                clazz.getResource(
+                    "/" + cleanSubdir + "/" + path.dropWhile(_ == '/')
+                )
+            }
+        }
+    }
+
 }
 
 /**
@@ -51,13 +72,13 @@ trait Templater {
  * Renders a template
  */
 class BaseTemplater (
-    private val env: Env,
+    private val finder: Templater.Finder,
     private val handlers: Map[String,(String) => String] = Map()
 ) extends Templater {
 
     /** Templating engine */
     private lazy val engine = {
-        val engine = new Handlebars( env.templates )
+        val engine = new Handlebars( finder )
         handlers.foreach( pair => {
             engine.registerHelper( pair._1, new Helper[Any] {
                 override def apply( value: Any, opts: Options )
@@ -69,7 +90,7 @@ class BaseTemplater (
 
     /** Registers a block handler */
     def handle( name: String, callback: (String) => String ): BaseTemplater
-        = new BaseTemplater( env, handlers + (name -> callback) )
+        = new BaseTemplater( finder, handlers + (name -> callback) )
 
     /** Registers a block handler that expects a list of strings */
     def handleList(
