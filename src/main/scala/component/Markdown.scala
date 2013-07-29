@@ -9,9 +9,6 @@ import com.roundeights.scalon.nObject
 /** @see Markdown */
 object Markdown {
 
-    /** A shared markdown parser */
-    lazy protected val processor = new PegDownProcessor( Extensions.ALL )
-
     /** Parses a markdown instance */
     class Parse extends Parser.CompParser {
 
@@ -31,9 +28,10 @@ case class Markdown( private val markdown: String ) extends Component {
 
     /** {@inheritDoc} */
     override def render( renderer: Renderer ): Future[String] = {
+        val processor = new PegDownProcessor( Extensions.ALL )
         Future.successful( renderer(
             "markdown",
-            "content" ->Markdown.processor.markdownToHtml( markdown )
+            "content" -> processor.markdownToHtml( markdown )
         ))
     }
 
