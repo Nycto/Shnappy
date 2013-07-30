@@ -2,6 +2,7 @@ package com.roundeights.shnappy.admin
 
 import com.roundeights.foldout.{Doc, Documentable}
 import com.roundeights.vfunk.{Validate, Filter, TextField}
+import com.roundeights.scalon._
 import java.util.UUID
 
 /** @see User */
@@ -16,7 +17,9 @@ object User {
         UUID.fromString( doc.id ),
         Some( doc.rev ),
         doc.str("name"),
-        doc.str("email")
+        doc.str("email"),
+        doc.ary_?("sites").getOrElse( nList() )
+            .map( elem => UUID.fromString(elem.asString) ).toSet
     )
 
     /** Validates a user's name */
@@ -36,7 +39,8 @@ case class User (
     val id: UUID,
     private val revision: Option[String],
     rawName: String,
-    rawEmail: String
+    rawEmail: String,
+    val sites: Set[UUID] = Set()
 ) extends Documentable {
 
     /** The filtered and validated name */
@@ -54,7 +58,8 @@ case class User (
         "_rev" -> revision,
         "type" -> "user",
         "name" -> name,
-        "email" -> email
+        "email" -> email,
+        "sites" -> sites.map( _.toString )
     )
 }
 
