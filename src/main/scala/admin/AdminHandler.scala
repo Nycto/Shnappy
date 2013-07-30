@@ -56,6 +56,9 @@ class AdminHandler(
                 formatErr( resp.badRequest, err.getMessage )
             }
 
+            case err: NotFound =>
+                formatErr( resp.notFound, err.getMessage )
+
             case err: InvalidData =>
                 formatErr( resp.badRequest, err.getMessage )
 
