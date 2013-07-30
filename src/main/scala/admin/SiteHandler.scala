@@ -2,6 +2,7 @@ package com.roundeights.shnappy.admin
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.roundeights.skene._
+import com.roundeights.scalon._
 
 /**
  * Site API handlers
@@ -11,7 +12,9 @@ class SiteApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
     // Return a list of all sites
     get("/admin/api/sites")(
         req.use[Auth].in((prereqs, resp, recover) => {
-            resp.text("ok").done
+            recover.fromFuture( data.getSites ).onSuccess {
+                case sites => resp.json( nElement(sites).toString ).done
+            }
         })
     )
 

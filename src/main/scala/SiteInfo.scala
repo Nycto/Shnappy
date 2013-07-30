@@ -1,6 +1,7 @@
 package com.roundeights.shnappy
 
 import com.roundeights.foldout.{Doc, Documentable}
+import com.roundeights.scalon.{nObject, nElement}
 import com.roundeights.vfunk.{Validate, Filter, TextField, Err}
 import java.util.UUID
 
@@ -67,7 +68,7 @@ case class SiteInfo (
     rawTitle: Option[String],
     val favicon: Option[String],
     rawHosts: Set[String]
-) extends Documentable {
+) extends Documentable with nElement.ToJson {
 
     /** The filtered and validated theme */
     val theme: String = SiteInfo.theme.process( rawTheme ).require.value
@@ -99,6 +100,12 @@ case class SiteInfo (
         "favicon" -> favicon,
         "hosts" -> hosts,
         "updated" -> DateGen.formatNow
+    )
+
+    /** {@inheritDoc} */
+    override def toJson = nObject(
+        "siteID" -> id.toString, "theme" -> theme, "title" -> title,
+        "favicon" -> favicon, "hosts" -> hosts
     )
 }
 
