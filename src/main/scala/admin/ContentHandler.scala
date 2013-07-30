@@ -15,7 +15,7 @@ class ContentApiHandler (
 
     // Returns all the content for a specific site
     get("/admin/api/sites/:siteID/content")(
-        req.use[Auth, SiteAdmin].in((prereqs, resp, recover) => {
+        req.use[SiteEditor].in((prereqs, resp, recover) => {
             recover.fromFuture(
                 data.getPagesAndLinks( prereqs.siteID )
             ).onSuccess {
@@ -29,7 +29,7 @@ class ContentApiHandler (
 
     // Creates a new piece of content
     post("/admin/api/sites/:siteID/content")(
-        req.use[Auth, SiteAdmin].in((prereqs, resp, recover) => {
+        req.use[SiteEditor].in((prereqs, resp, recover) => {
             resp.text("ok").done
         })
     )

@@ -8,27 +8,27 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import java.util.UUID
 
 /**
- * Requires that the authenticated user is an admin for a site
+ * Requires that the authenticated user has edit permissions for a site
  */
-trait SiteAdmin {
+trait SiteEditor {
 
     /** The site in question */
     def siteID: UUID
 
     /** {@inheritDoc} */
-    override def toString = "SiteAdmin(%s)".format(siteID)
+    override def toString = "SiteEditor(%s)".format(siteID)
 }
 
 /**
- * Builds a SiteAdmin prereq
+ * Builds a SiteEditor prereq
  */
-class SiteAdminProvider extends Provider[SiteAdmin] {
+class SiteEditorProvider extends Provider[SiteEditor] {
 
     /** {@inheritDoc} */
     override def dependencies: Set[Class[_]] = Set( classOf[Auth] )
 
     /** {@inheritDoc} */
-    override def build( bundle: Bundle, next: Promise[SiteAdmin] ): Unit = {
+    override def build( bundle: Bundle, next: Promise[SiteEditor] ): Unit = {
         val user = bundle.get[Auth].user
 
         for {
@@ -44,7 +44,7 @@ class SiteAdminProvider extends Provider[SiteAdmin] {
                 next.failure(new Unauthorized("User can not access site"))
             }
 
-        } next.success(new SiteAdmin {
+        } next.success(new SiteEditor {
             override def siteID = id
         })
     }

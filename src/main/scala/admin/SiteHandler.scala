@@ -31,7 +31,7 @@ class SiteApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
 
     // Returns the details about a specific site
     get("/admin/api/sites/:siteID")(
-        req.use[Auth, SiteAdmin].in((prereqs, resp, recover) => {
+        req.use[SiteEditor].in((prereqs, resp, recover) => {
             recover.fromFuture(
                 data.getSite( prereqs.siteID )
             ).onSuccess {
@@ -43,7 +43,7 @@ class SiteApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
 
     // Updates specified values for a site
     patch("/admin/api/sites/:siteID")(
-        req.use[Auth, SiteAdmin, BodyData].in((prereqs, resp, recover) => {
+        req.use[SiteEditor, BodyData].in((prereqs, resp, recover) => {
             for {
                 siteOpt <- recover.fromFuture( data.getSite(prereqs.siteID) )
 
