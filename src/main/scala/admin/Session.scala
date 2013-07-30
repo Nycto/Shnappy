@@ -46,22 +46,6 @@ class Session ( secret: String ) {
     }
 }
 
-/** @see Auth */
-object Auth {
-
-    /** Thrown when a user isn't logged in */
-    class Unauthenticated( message: String ) extends Exception(message)
-
-    /** Thrown when a user fails authentication */
-    class Unauthorized( message: String ) extends Exception(message)
-
-    /** Thrown when a page isn't loaded via HTTPs */
-    class Insecure extends Exception
-
-    /** Thrown when a user isn't logged in */
-    class VerificationFailed extends Exception
-}
-
 /**
  * Represents the logged in state of a user
  */
@@ -102,14 +86,14 @@ class AuthProvider (
 
             // Extract the auth cookie
             cookie <- bundle.request.cookies.first("auth") :: OnFail {
-                next.failure( new Auth.Unauthenticated(
+                next.failure( new Unauthenticated(
                     "Auth cookie not found"
                 ) )
             }
 
             // Pull the user ID out of the cookie
             userID <- extractUserID( cookie.value ) :: OnFail {
-                next.failure( new Auth.Unauthenticated("Invalid auth cookie") )
+                next.failure( new Unauthenticated("Invalid auth cookie") )
             }
 
             // Fetch the user, if they exist
@@ -117,7 +101,7 @@ class AuthProvider (
 
             // Extract the user from the option
             userObj <- userOpt :: OnFail {
-                next.failure( new Auth.Unauthenticated("User does not exist") )
+                next.failure( new Unauthenticated("User does not exist") )
             }
 
         } next.success( new Auth {

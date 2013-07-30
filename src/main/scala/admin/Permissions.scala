@@ -36,13 +36,12 @@ class SiteAdminProvider extends Provider[SiteAdmin] {
             id <- TryTo.except {
                 UUID.fromString( bundle.request.params("siteID") )
             } onFailMatch {
-                // FIXME: Make this a client error
                 case _: Throwable =>
                     next.failure( new InvalidData("Invalid site ID") )
             }
 
             _ <- user.sites.contains( id ) :: OnFail {
-                next.failure(new Auth.Unauthorized("User can not access site"))
+                next.failure(new Unauthorized("User can not access site"))
             }
 
         } next.success(new SiteAdmin {

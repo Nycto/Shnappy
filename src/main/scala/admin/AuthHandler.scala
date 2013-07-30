@@ -24,7 +24,7 @@ class AuthApiHandler(
                 data.getUserByEmail( prereqs.email )
             ).onSuccess {
                 case None => recover.orRethrow(
-                    new Auth.Unauthorized("User does not exist")
+                    new Unauthorized("User does not exist")
                 )
                 case Some(user) => {
                     val cookie = Cookie(

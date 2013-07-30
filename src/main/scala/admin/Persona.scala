@@ -75,7 +75,7 @@ class PersonaProvider (
             }
 
             _ <- ( status == "okay" ) :: OnFail {
-                next.failure( new Auth.Unauthorized(
+                next.failure( new Unauthorized(
                     "Persona response status not ok: %s".format( json )
                 ))
             }

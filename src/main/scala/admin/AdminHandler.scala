@@ -59,10 +59,10 @@ class AdminHandler(
             case err: InvalidData =>
                 formatErr( resp.badRequest, err.getMessage )
 
-            case err: Auth.Unauthenticated =>
+            case err: Unauthenticated =>
                 formatErr( resp.unauthorized, "Unauthenticated request" )
 
-            case err: Auth.Unauthorized =>
+            case err: Unauthorized =>
                 formatErr( resp.unauthorized, "Unauthorized" )
 
             case err: Throwable => {
@@ -77,7 +77,7 @@ class AdminHandler(
 
         // Fail non-secure requests
         if ( !env.adminDevMode )
-            notSecure(_ => throw new Auth.Insecure)
+            notSecure(_ => throw new Insecure)
     }
 
 
@@ -108,7 +108,7 @@ class AdminHandler(
 
         /** {@inheritDoc} */
         override def customErr(resp: Response) = {
-            case err: Auth.Unauthenticated => resp.html(
+            case err: Unauthenticated => resp.html(
                 baseTemplate
                     .wrap("admin/page", "content", "enableLogin" -> true)
                     .apply("admin/login")
