@@ -2,7 +2,9 @@ package com.roundeights.shnappy.admin
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.roundeights.skene._
+import com.roundeights.scalon._
 import com.roundeights.shnappy.Templater
+import java.util.UUID
 
 /**
  * Page API handlers
@@ -14,7 +16,13 @@ class ContentApiHandler (
     // Returns all the content for a specific site
     get("/admin/api/sites/:siteID/content")(
         req.use[Auth].in((prereqs, resp, recover) => {
-            resp.text("ok").done
+            val id = UUID.fromString( prereqs.request.params("siteID") )
+            recover.fromFuture( data.getPagesAndLinks( id ) ).onSuccess {
+                case content => resp.json( nElement( content.map {
+                    case Left(page) => page.toJson
+                    case Right(link) => link.toJson
+                } ).toString ).done
+            }
         })
     )
 

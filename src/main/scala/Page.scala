@@ -2,7 +2,7 @@ package com.roundeights.shnappy
 
 import com.roundeights.shnappy.component.{Component, Parser}
 import com.roundeights.foldout.{Doc, Documentable}
-import com.roundeights.scalon.nList
+import com.roundeights.scalon._
 import com.roundeights.vfunk.{Validate, Filter, TextField}
 import scala.concurrent.{Future, ExecutionContext}
 import java.util.{UUID, Date}
@@ -55,7 +55,7 @@ case class Page (
     val content: Seq[Component],
     private val markedIndex: Option[Date],
     private val navSort: Option[SortKey]
-) extends Documentable {
+) extends Documentable with nElement.ToJson {
 
     /** The filtered and validated page title */
     val title = Page.title.process( rawTitle ).require.value
@@ -110,6 +110,16 @@ case class Page (
         "markedIndex" -> markedIndex.map( DateGen.format _ ),
         "navSort" -> navSort.map( _.toString ),
         "updated" -> DateGen.formatNow
+    )
+
+    /** {@inheritDoc} */
+    override def toJson = nObject(
+        "id" -> id.toString, "siteID" -> siteID.toString,
+        "type" -> "page",
+        "markedIndex" -> markedIndex.map( DateGen.format _ ),
+        "navSort" -> navSort.map( _.toString ),
+        "title" -> title, "slug" -> slug,
+        "content" -> content.foldRight( nList() )( _.serialize :: _ )
     )
 }
 

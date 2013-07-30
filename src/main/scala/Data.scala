@@ -66,7 +66,7 @@ class LiveData (
     ), Duration(3, "second") )
 
     /** {@inheritDoc} */
-    override val admin = new AdminData( db )
+    override val admin = new AdminData( db, parser )
 
     /** {@inheritDoc} */
     def close: Unit = couch.close

@@ -3,6 +3,7 @@ package com.roundeights.shnappy
 import com.roundeights.shnappy.component.Parser
 import com.roundeights.foldout.{Doc, Documentable}
 import com.roundeights.vfunk.{Validate, Filter, TextField}
+import com.roundeights.scalon._
 import java.util.UUID
 
 /** Represents the sort position of an element in the Nav */
@@ -131,7 +132,7 @@ case class RawLink (
     private val revision: Option[String],
     val siteID: UUID,
     val link: NavLink
-) extends Documentable {
+) extends Documentable with nElement.ToJson {
 
     /** {@inheritDoc} */
     override def toDoc = Doc(
@@ -143,6 +144,13 @@ case class RawLink (
         "url" -> link.url,
         "navSort" -> link.sort.toString,
         "updated" -> DateGen.formatNow
+    )
+
+    /** {@inheritDoc} */
+    override def toJson = nObject(
+        "id" -> id.toString, "type" -> "link",
+        "siteID" -> siteID.toString, "navSort" -> link.sort.toString,
+        "text" -> link.text, "url" -> link.url
     )
 }
 
