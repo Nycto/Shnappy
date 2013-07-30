@@ -31,7 +31,12 @@ class SiteApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
     // Returns the details about a specific site
     get("/admin/api/sites/:siteID")(
         req.use[Auth, SiteAdmin].in((prereqs, resp, recover) => {
-            resp.text("ok").done
+            recover.fromFuture(
+                data.getSite( prereqs.siteID )
+            ).onSuccess {
+                case None => throw new NotFound("Site not be found")
+                case Some(site) => resp.json( site.toJson.toString ).done
+            }
         })
     )
 

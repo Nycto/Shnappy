@@ -7,9 +7,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 import java.util.UUID
 
-/** Thrown when an input field is invalid */
-class InvalidData( message: String ) extends Exception( message )
-
 /**
  * Requires that the authenticated user is an admin for a site
  */

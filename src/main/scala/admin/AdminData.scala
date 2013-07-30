@@ -36,6 +36,10 @@ class AdminData ( private val db: Database, private val parser: Parser ) {
     def getSites: Future[Seq[SiteInfo]]
         = design.view("sites").exec.map( _.map( doc => SiteInfo(doc) ) )
 
+    /** Returns details for a specific site */
+    def getSite( uuid: UUID ): Future[Option[SiteInfo]]
+        = db.get( uuid.toString ).map( _.map( doc => SiteInfo(doc) ) )
+
     /** Returns a list of all pages and links for a site */
     def getPagesAndLinks( siteID: UUID ): Future[Seq[Either[Page,RawLink]]] = {
         design.view("contentBySite")
