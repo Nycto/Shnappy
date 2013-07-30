@@ -24,7 +24,7 @@ class SiteApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
 
     // Create a new site
     post("/admin/api/sites")(
-        req.use[Auth].in((prereqs, resp, recover) => {
+        req.use[Admin].in((prereqs, resp, recover) => {
             resp.text("ok").done
         })
     )

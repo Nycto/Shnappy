@@ -50,4 +50,30 @@ class SiteEditorProvider extends Provider[SiteEditor] {
     }
 }
 
+/**
+ * Denotes that the authenticated user is an admin for a site
+ */
+trait Admin {
+
+    /** {@inheritDoc} */
+    override def toString = "Admin"
+}
+
+/**
+ * Builds an Admin prereq
+ */
+class AdminProvider extends Provider[Admin] {
+
+    /** {@inheritDoc} */
+    override def dependencies: Set[Class[_]] = Set( classOf[Auth] )
+
+    /** {@inheritDoc} */
+    override def build( bundle: Bundle, next: Promise[Admin] ): Unit = {
+        if ( bundle.get[Auth].user.isAdmin )
+            next.success(new Admin {})
+        else
+            next.failure(new Unauthorized("User is not an admin"))
+    }
+}
+
 

@@ -18,6 +18,7 @@ class AdminHandler(
     /** A registry of Prereq providers */
     val prereq = Registry()
         .register[Auth]( new AuthProvider(!env.adminDevMode, sessions, data) )
+        .register[Admin]( new AdminProvider )
         .register[SiteEditor]( new SiteEditorProvider )
         .register[BodyData]( new BodyDataProvider )
         .register[Persona]( new PersonaProvider(
