@@ -19,7 +19,8 @@ object User {
         doc.str("name"),
         doc.str("email"),
         doc.ary_?("sites").getOrElse( nList() )
-            .map( elem => UUID.fromString(elem.asString) ).toSet
+            .map( elem => UUID.fromString(elem.asString) ).toSet,
+        doc.bool_?("isAdmin").getOrElse(false)
     )
 
     /** Validates a user's name */
@@ -40,7 +41,8 @@ case class User (
     private val revision: Option[String],
     rawName: String,
     rawEmail: String,
-    val sites: Set[UUID] = Set()
+    val sites: Set[UUID] = Set(),
+    val isAdmin: Boolean = false
 ) extends Documentable {
 
     /** The filtered and validated name */
@@ -59,7 +61,11 @@ case class User (
         "type" -> "user",
         "name" -> name,
         "email" -> email,
-        "sites" -> sites.map( _.toString )
+        "sites" -> sites.map( _.toString ),
+        "isAdmin" -> isAdmin
     )
+
+    /** Returns whether this user can make change to a given site */
+    def canChange( siteID: UUID ) = isAdmin || sites.contains(siteID)
 }
 

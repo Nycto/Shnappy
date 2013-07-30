@@ -40,7 +40,7 @@ class SiteAdminProvider extends Provider[SiteAdmin] {
                     next.failure( new InvalidData("Invalid site ID") )
             }
 
-            _ <- user.sites.contains( id ) :: OnFail {
+            _ <- user.canChange( id ) :: OnFail {
                 next.failure(new Unauthorized("User can not access site"))
             }
 

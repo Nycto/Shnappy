@@ -16,7 +16,7 @@ class SiteApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
             recover.fromFuture( data.getSites ).onSuccess { case sites => {
                 val user = prereqs.user
                 resp.json( nElement( sites.filter(
-                    site => user.sites.contains(site.id)
+                    site => user.canChange(site.id)
                 )).toString ).done
             }}
         })
