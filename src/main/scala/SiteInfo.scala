@@ -83,6 +83,14 @@ case class SiteInfo (
         value => SiteInfo.host.process( value ).require.value
     )
 
+    /** Changes the Theme for this site */
+    def withTheme ( newTheme: String )
+        = SiteInfo(id, revision, newTheme, title, favicon, rawHosts)
+
+    /** Changes the title for this site */
+    def withTitle ( newTitle: String )
+        = SiteInfo(id, revision, theme, Some(newTitle), favicon, rawHosts)
+
     /** Returns this instance as a map */
     def toMap: Map[String, String] = {
         title.foldLeft( Map("theme" -> theme) ) {

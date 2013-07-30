@@ -3,6 +3,7 @@ package com.roundeights.shnappy.admin
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.roundeights.skene._
 import com.roundeights.scalon._
+import com.roundeights.attempt._
 
 /**
  * Site API handlers
@@ -42,8 +43,26 @@ class SiteApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
 
     // Updates specified values for a site
     patch("/admin/api/sites/:siteID")(
-        req.use[Auth, SiteAdmin].in((prereqs, resp, recover) => {
-            resp.text("ok").done
+        req.use[Auth, SiteAdmin, BodyData].in((prereqs, resp, recover) => {
+            for {
+                siteOpt <- recover.fromFuture( data.getSite(prereqs.siteID) )
+
+                site <- siteOpt :: OnFail {
+                    recover.orRethrow( new NotFound("Site not be found") )
+                }
+
+                updated <- TryTo.except {
+                    prereqs.json.asObject.patch(site)
+                        .patch[String]("theme", _ withTheme _)
+                        .patch[String]("title", _ withTitle _)
+                        .done
+                } onFailMatch {
+                    case err: Throwable => recover.orRethrow(err)
+                }
+
+                _ <- recover.fromFuture( data.save(updated) )
+
+            } resp.json( updated.toJson.toString ).done
         })
     )
 }
