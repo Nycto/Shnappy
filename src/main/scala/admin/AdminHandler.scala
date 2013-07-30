@@ -18,6 +18,7 @@ class AdminHandler(
     /** A registry of Prereq providers */
     val prereq = Registry()
         .register[Auth]( new AuthProvider(!env.adminDevMode, sessions, data) )
+        .register[SiteAdmin]( new SiteAdminProvider )
         .register[BodyData]( new BodyDataProvider )
         .register[Persona]( new PersonaProvider(
             audience = "%s://%s:%d".format(
@@ -55,15 +56,14 @@ class AdminHandler(
                 formatErr( resp.badRequest, err.getMessage )
             }
 
-            case err: Auth.Unauthenticated => {
-                err.printStackTrace
-                formatErr( resp.unauthorized, "Unauthenticated request" )
-            }
+            case err: InvalidData =>
+                formatErr( resp.badRequest, err.getMessage )
 
-            case err: Auth.Unauthorized => {
-                err.printStackTrace
+            case err: Auth.Unauthenticated =>
+                formatErr( resp.unauthorized, "Unauthenticated request" )
+
+            case err: Auth.Unauthorized =>
                 formatErr( resp.unauthorized, "Unauthorized" )
-            }
 
             case err: Throwable => {
                 err.printStackTrace

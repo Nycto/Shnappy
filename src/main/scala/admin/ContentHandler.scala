@@ -15,9 +15,10 @@ class ContentApiHandler (
 
     // Returns all the content for a specific site
     get("/admin/api/sites/:siteID/content")(
-        req.use[Auth].in((prereqs, resp, recover) => {
-            val id = UUID.fromString( prereqs.request.params("siteID") )
-            recover.fromFuture( data.getPagesAndLinks( id ) ).onSuccess {
+        req.use[Auth, SiteAdmin].in((prereqs, resp, recover) => {
+            recover.fromFuture(
+                data.getPagesAndLinks( prereqs.siteID )
+            ).onSuccess {
                 case content => resp.json( nElement( content.map {
                     case Left(page) => page.toJson
                     case Right(link) => link.toJson
@@ -28,7 +29,7 @@ class ContentApiHandler (
 
     // Creates a new piece of content
     post("/admin/api/sites/:siteID/content")(
-        req.use[Auth].in((prereqs, resp, recover) => {
+        req.use[Auth, SiteAdmin].in((prereqs, resp, recover) => {
             resp.text("ok").done
         })
     )
