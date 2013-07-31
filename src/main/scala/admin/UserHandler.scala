@@ -121,7 +121,9 @@ class UserApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
     // Returns the sites a user has access to
     get("/admin/api/users/:userID/sites")(
         req.use[Admin, UserEdit].in((prereqs, resp, recover) => {
-            resp.text("ok").done
+            resp.json( nElement(
+                prereqs.userEdit.sites.map(_.toString)
+            ).toString ).done
         })
     )
 
