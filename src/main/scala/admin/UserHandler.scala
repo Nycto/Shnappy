@@ -81,8 +81,26 @@ class UserApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
 
     // Updates info for a specific user
     patch("/admin/api/users/:userID")(
-        req.use[Admin, UserEdit].in((prereqs, resp, recover) => {
-            resp.text("ok").done
+        req.use[Admin, UserEdit, BodyData].in((prereqs, resp, recover) => {
+            for {
+                updated <- TryTo.except {
+                    prereqs.json.asObject.patch( prereqs.userEdit )
+                        .patch[String]("name", _ withName _)
+                        .patch[String]("email", _ withEmail _)
+                        .patch[Boolean]("isAdmin", _ setAdmin _)
+                        .patch[nList]("sites", (user, sites) => {
+                            user.setSites( sites.map(
+                                siteID => UUID.fromString( siteID.toString )
+                            ).toSet )
+                        })
+                        .done
+                } onFailMatch {
+                    case err: Throwable => recover.orRethrow(err)
+                }
+
+                _ <- recover.fromFuture( data.save(updated) )
+
+            } resp.json( updated.toJson.toString ).done
         })
     )
 

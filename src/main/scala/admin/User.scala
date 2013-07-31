@@ -54,6 +54,22 @@ case class User (
     /** {@inheritDoc} */
     override def toString = "User(%s, %s, %s)".format(id, name, email)
 
+    /** Replaces the name of this user */
+    def withName( newName: String )
+        = User(id, revision, newName, email, sites, isAdmin)
+
+    /** Replaces the email of this user */
+    def withEmail( newEmail: String )
+        = User(id, revision, name, newEmail, sites, isAdmin)
+
+    /** Replaces the list of sites  */
+    def setSites( siteList: Set[UUID] ): User
+        = User(id, revision, name, email, siteList, isAdmin)
+
+    /** Replaces this user as the admin */
+    def setAdmin( admin: Boolean )
+        = User(id, revision, name, email, sites, admin)
+
     /** {@inheritDoc} */
     override def toDoc = Doc(
         "_id" -> id.toString,
