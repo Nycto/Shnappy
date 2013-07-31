@@ -78,7 +78,18 @@ class SiteApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
                 updated <- TryTo.except {
                     prereqs.json.asObject.patch(site)
                         .patch[String]("theme", _ withTheme _)
-                        .patch[String]("title", _ withTitle _)
+                        .patchElem("title", (site, title) => {
+                            site.withTitle( title.asString_? )
+                        })
+                        .patchElem("favicon", (site, favicon) => {
+                            site.withFavicon( favicon.asString_? )
+                        })
+                        .patch[String]("host", (site, host) => {
+                            site.withHosts( Set(host) )
+                        })
+                        .patch[nList]("hosts", (site, hosts) => {
+                            site.withHosts( hosts.map( _.asString ).toSet )
+                        })
                         .done
                 } onFailMatch {
                     case err: Throwable => recover.orRethrow(err)

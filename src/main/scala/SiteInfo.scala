@@ -91,11 +91,19 @@ case class SiteInfo (
 
     /** Changes the Theme for this site */
     def withTheme ( newTheme: String )
-        = SiteInfo(id, revision, newTheme, title, favicon, rawHosts)
+        = SiteInfo(id, revision, newTheme, title, favicon, hosts)
 
     /** Changes the title for this site */
-    def withTitle ( newTitle: String )
-        = SiteInfo(id, revision, theme, Some(newTitle), favicon, rawHosts)
+    def withTitle ( newTitle: Option[String] )
+        = SiteInfo(id, revision, theme, newTitle, favicon, hosts)
+
+    /** Changes the favicon for this site */
+    def withFavicon ( newFavicon: Option[String] )
+        = SiteInfo(id, revision, theme, title, newFavicon, hosts)
+
+    /** Changes the favicon for this site */
+    def withHosts ( newHosts: Set[String] )
+        = SiteInfo(id, revision, theme, title, favicon, newHosts)
 
     /** Returns this instance as a map */
     def toMap: Map[String, String] = {
