@@ -22,14 +22,16 @@ object SiteInfo {
     ): SiteInfo = apply( theme, title, favicon, Set(host) )
 
     /** Creates an SiteInfo from a document */
-    def apply ( doc: Doc ) = new SiteInfo(
-        UUID.fromString( doc.id ),
-        Some( doc.rev ),
-        doc.str("theme"),
-        doc.str_?("title"),
-        doc.str_?("favicon"),
-        doc.ary_?("hosts").map( _.map( _.asString ).toSet ).getOrElse( Set() )
-    )
+    def apply ( doc: Doc ) = Data.checktype(doc, "siteinfo") {
+        new SiteInfo(
+            UUID.fromString( doc.id ),
+            Some( doc.rev ),
+            doc.str("theme"),
+            doc.str_?("title"),
+            doc.str_?("favicon"),
+            doc.ary_?("hosts").map( _.map( _.asString ).toSet ).getOrElse( Set() )
+        )
+    }
 
     /** Filter and validation rules for the theme */
     private[SiteInfo] val theme = TextField( "theme",

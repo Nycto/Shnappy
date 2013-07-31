@@ -16,16 +16,18 @@ object Page {
     )
 
     /** Creates a Page from a document and a parser */
-    def apply ( doc: Doc, parser: Parser ) = new Page(
-        UUID.fromString( doc.id ),
-        Some( doc.rev ),
-        UUID.fromString( doc.str("siteID") ),
-        doc.str("title"),
-        doc.str("slug"),
-        parser.parse( doc.ary("content") ),
-        doc.str_?("markedIndex").map( DateGen.parse _ ),
-        doc.get_?("navSort").map( value => new SortKey(value.asString) )
-    )
+    def apply ( doc: Doc, parser: Parser ) = Data.checktype(doc, "page") {
+        new Page(
+            UUID.fromString( doc.id ),
+            Some( doc.rev ),
+            UUID.fromString( doc.str("siteID") ),
+            doc.str("title"),
+            doc.str("slug"),
+            parser.parse( doc.ary("content") ),
+            doc.str_?("markedIndex").map( DateGen.parse _ ),
+            doc.get_?("navSort").map( value => new SortKey(value.asString) )
+        )
+    }
 
     /** Filter and validation rules for a slug */
     private[Page] val slug = TextField( "slug",

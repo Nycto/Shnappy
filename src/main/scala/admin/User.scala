@@ -3,6 +3,7 @@ package com.roundeights.shnappy.admin
 import com.roundeights.foldout.{Doc, Documentable}
 import com.roundeights.vfunk.{Validate, Filter, TextField}
 import com.roundeights.scalon._
+import com.roundeights.shnappy.Data
 import java.util.UUID
 
 /** @see User */
@@ -18,15 +19,17 @@ object User {
     ) = new User ( UUID.randomUUID, None, name, email, sites, isAdmin )
 
     /** Creates a user from a Couch DB doc */
-    def apply ( doc: Doc ) = new User (
-        UUID.fromString( doc.id ),
-        Some( doc.rev ),
-        doc.str("name"),
-        doc.str("email"),
-        doc.ary_?("sites").getOrElse( nList() )
-            .map( elem => UUID.fromString(elem.asString) ).toSet,
-        doc.bool_?("isAdmin").getOrElse(false)
-    )
+    def apply ( doc: Doc ) = Data.checktype(doc, "user") {
+        new User (
+            UUID.fromString( doc.id ),
+            Some( doc.rev ),
+            doc.str("name"),
+            doc.str("email"),
+            doc.ary_?("sites").getOrElse( nList() )
+                .map( elem => UUID.fromString(elem.asString) ).toSet,
+            doc.bool_?("isAdmin").getOrElse(false)
+        )
+    }
 
     /** Validates a user's name */
     private[User] val name = TextField( "name",

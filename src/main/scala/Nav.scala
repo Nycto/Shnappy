@@ -115,15 +115,17 @@ object RawLink {
     }
 
     /** Creates an RawLink from a document */
-    def apply ( doc: Doc ) = new RawLink(
-        UUID.fromString( doc.id ),
-        Some( doc.rev ),
-        UUID.fromString( doc.str("siteID") ),
-        NavLink(
-            doc.str("url"), doc.str("text"),
-            new SortKey( doc.get("navSort").asString )
+    def apply ( doc: Doc ) = Data.checktype(doc, "link") {
+        new RawLink(
+            UUID.fromString( doc.id ),
+            Some( doc.rev ),
+            UUID.fromString( doc.str("siteID") ),
+            NavLink(
+                doc.str("url"), doc.str("text"),
+                new SortKey( doc.get("navSort").asString )
+            )
         )
-    )
+    }
 }
 
 /** Represents a link without an associated page */

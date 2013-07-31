@@ -70,6 +70,9 @@ class AdminHandler(
             case err: Unauthorized =>
                 formatErr( resp.unauthorized, "Unauthorized" )
 
+            case err: Data.WrongType =>
+                formatErr( resp.notFound, "Not Found" )
+
             case err: Throwable => {
                 err.printStackTrace
                 formatErr( resp.serverError, "Internal server error" )

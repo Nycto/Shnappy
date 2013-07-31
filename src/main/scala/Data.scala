@@ -25,6 +25,21 @@ object Data {
             )
         }
     ))
+
+    /** Thrown when trying to build one object from wrongly typed source data */
+    class WrongType( message: String ) extends Exception(message)
+
+    /** Executes a thunk if the type matches */
+    def checktype[T] ( doc: Doc, typename: String )( thunk: => T ): T = {
+        if ( !doc.contains("type" ) )
+            throw new WrongType("Doc is missing the 'type' key")
+        else if ( !doc.get("type").isString )
+            throw new WrongType("Doc 'type' is not a string")
+        else if ( doc.str("type") != typename )
+            throw new WrongType("Doc is the wrong type")
+        else
+            thunk
+    }
 }
 
 /**
