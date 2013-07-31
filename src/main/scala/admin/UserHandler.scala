@@ -41,7 +41,7 @@ class UserEditProvider( val data: AdminData ) extends Provider[UserEdit] {
             userOpt <- data.getUser(id) :: OnFail.alsoFail(next)
 
             user <- userOpt :: OnFail {
-                throw new NotFound("User does not exist")
+                next.failure( new NotFound("User does not exist") )
             }
 
         } next.success(new UserEdit {
@@ -134,7 +134,9 @@ class UserApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
     // Deletes a user
     delete("/admin/api/users/:userID")(
         req.use[Admin, UserEdit].in((prereqs, resp, recover) => {
-            resp.text("ok").done
+            recover.fromFuture( data.delete( prereqs.userEdit ) ).onSuccess {
+                case _ => resp.json( nObject("status" -> "ok").toString ).done
+            }
         })
     )
 

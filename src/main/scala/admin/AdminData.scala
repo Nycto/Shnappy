@@ -58,5 +58,8 @@ class AdminData ( private val db: Database, private val parser: Parser ) {
 
     /** Saves a document */
     def save ( doc: Documentable ): Future[Written] = db.put( doc )
+
+    /** Deletes a document */
+    def delete ( doc: Documentable ): Future[Written] = db.delete( doc )
 }
 
