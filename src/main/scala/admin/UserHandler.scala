@@ -67,8 +67,35 @@ class UserApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
 
     // Creates a new user
     post("/admin/api/users")(
-        req.use[Admin].in((prereqs, resp, recover) => {
-            resp.text("ok").done
+        req.use[Admin, BodyData].in((prereqs, resp, recover) => {
+            for {
+
+                user <- TryTo.except {
+                    val json = prereqs.json.asObject
+                    User(
+                        json.str("name"),
+                        json.str("email"),
+                        if ( json.contains("site") ) {
+                            Set( UUID.fromString( json.str("site") ) )
+                        }
+                        else {
+                            json.ary("sites").map(
+                                siteID => UUID.fromString( siteID.asString )
+                            ).toSet
+                        },
+                        json.bool_?("isAdmin").getOrElse( false )
+                    )
+
+                } onFailMatch {
+                    case err: nException => recover.orRethrow(
+                        new InvalidData( err.getMessage )
+                    )
+                    case err: Throwable => recover.orRethrow( err )
+                }
+
+                _ <- recover.fromFuture( data.save(user) )
+
+            } resp.json( user.toJson.toString ).done
         })
     )
 

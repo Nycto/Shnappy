@@ -12,6 +12,11 @@ object User {
     def apply ( name: String, email: String )
         = new User ( UUID.randomUUID, None, name, email )
 
+    /** Creates a new user  */
+    def apply (
+        name: String, email: String, sites: Set[UUID], isAdmin: Boolean
+    ) = new User ( UUID.randomUUID, None, name, email, sites, isAdmin )
+
     /** Creates a user from a Couch DB doc */
     def apply ( doc: Doc ) = new User (
         UUID.fromString( doc.id ),
