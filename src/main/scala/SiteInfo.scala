@@ -10,10 +10,16 @@ object SiteInfo {
 
     /** Creates a new site info instance */
     def apply (
-        theme: String, title: String, favicon: Option[String], host: String
+        theme: String, title: String,
+        favicon: Option[String], hosts: Set[String]
     ) = new SiteInfo(
-        UUID.randomUUID, None, theme, Some(title), favicon, Set( host )
+        UUID.randomUUID, None, theme, Some(title), favicon, hosts
     )
+
+    /** Creates a new site info instance */
+    def apply (
+        theme: String, title: String, favicon: Option[String], host: String
+    ): SiteInfo = apply( theme, title, favicon, Set(host) )
 
     /** Creates an SiteInfo from a document */
     def apply ( doc: Doc ) = new SiteInfo(

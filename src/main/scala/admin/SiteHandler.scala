@@ -1,6 +1,7 @@
 package com.roundeights.shnappy.admin
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import com.roundeights.shnappy._
 import com.roundeights.skene._
 import com.roundeights.scalon._
 import com.roundeights.attempt._
@@ -24,8 +25,31 @@ class SiteApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
 
     // Create a new site
     post("/admin/api/sites")(
-        req.use[Admin].in((prereqs, resp, recover) => {
-            resp.text("ok").done
+        req.use[Admin, BodyData].in((prereqs, resp, recover) => {
+            for {
+
+                site <- TryTo.except {
+                    val json = prereqs.json.asObject
+                    SiteInfo(
+                        json.str("theme"),
+                        json.str("title"),
+                        json.str_?("favicon"),
+                        if ( json.contains("host") )
+                            Set( json.str("host") )
+                        else
+                            json.ary("hosts").map( _.asString ).toSet
+                    )
+
+                } onFailMatch {
+                    case err: nException => recover.orRethrow(
+                        new InvalidData( err.getMessage )
+                    )
+                    case err: Throwable => recover.orRethrow( err )
+                }
+
+                _ <- recover.fromFuture( data.save(site) )
+
+            } resp.json( site.toJson.toString ).done
         })
     )
 
