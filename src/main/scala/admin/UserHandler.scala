@@ -3,6 +3,7 @@ package com.roundeights.shnappy.admin
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.roundeights.skene._
 import com.roundeights.shnappy.Templater
+import com.roundeights.scalon._
 
 /**
  * User API handlers
@@ -12,7 +13,9 @@ class UserApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
     // Returns all the users in the system
     get("/admin/api/users")(
         req.use[Admin].in((prereqs, resp, recover) => {
-            resp.text("ok").done
+            recover.fromFuture( data.getUsers ).onSuccess { case users => {
+                resp.json( nElement(users).toString ).done
+            }}
         })
     )
 

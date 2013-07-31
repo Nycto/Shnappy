@@ -19,7 +19,8 @@ class AdminData ( private val db: Database, private val parser: Parser ) {
     private val design = Await.result( db.designDir( classOf[AdminData],
         "usersByEmail"  -> "/couchdb/usersByEmail",
         "sites"         -> "/couchdb/sites",
-        "contentBySite" -> "/couchdb/contentBySite"
+        "contentBySite" -> "/couchdb/contentBySite",
+        "users"         -> "/couchdb/users"
     ), Duration(3, "second") )
 
     /** Returns a user by their ID */
@@ -31,6 +32,10 @@ class AdminData ( private val db: Database, private val parser: Parser ) {
     /** Returns a user by their ID */
     def getUser ( uuid: UUID ): Future[Option[User]]
         = db.get( uuid.toString ).map( _.map( doc => User(doc) ) )
+
+    /** Returns all users */
+    def getUsers: Future[Seq[User]]
+        = design.view("users").exec.map( _.map( doc => User(doc) ) )
 
     /** Returns a list of all pages and links for a site */
     def getSites: Future[Seq[SiteInfo]]

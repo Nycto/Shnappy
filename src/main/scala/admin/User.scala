@@ -43,7 +43,7 @@ case class User (
     rawEmail: String,
     val sites: Set[UUID] = Set(),
     val isAdmin: Boolean = false
-) extends Documentable {
+) extends Documentable with nElement.ToJson {
 
     /** The filtered and validated name */
     val name = User.name.process( rawName ).require.value
@@ -59,6 +59,15 @@ case class User (
         "_id" -> id.toString,
         "_rev" -> revision,
         "type" -> "user",
+        "name" -> name,
+        "email" -> email,
+        "sites" -> sites.map( _.toString ),
+        "isAdmin" -> isAdmin
+    )
+
+    /** {@inheritDoc} */
+    override def toJson = nObject(
+        "userID" -> id.toString,
         "name" -> name,
         "email" -> email,
         "sites" -> sites.map( _.toString ),
