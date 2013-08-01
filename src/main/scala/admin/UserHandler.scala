@@ -96,13 +96,6 @@ class UserApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
         })
     )
 
-    // Returns all the users that have access to a specific site
-    get("/admin/api/sites/:siteID/users")(
-        req.use[Admin, SiteParam].in((prereqs, resp, recover) => {
-            resp.text("ok").done
-        })
-    )
-
     // Returns the sites a user has access to
     get("/admin/api/users/:userID/sites")(
         req.use[Admin, UserParam].in((prereqs, resp, recover) => {

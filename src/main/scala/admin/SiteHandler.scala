@@ -89,5 +89,16 @@ class SiteApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
             } resp.json( updated.toJson.toString ).done
         })
     )
+
+    // Returns all the users that have access to a specific site
+    get("/admin/api/sites/:siteID/users")(
+        req.use[Admin, SiteParam].in((prereqs, resp, recover) => {
+            recover.fromFuture(
+                data.getUsersBySiteID( prereqs.siteParam.id )
+            ).onSuccess { case users => {
+                resp.json( nElement(users).toString ).done
+            }}
+        })
+    )
 }
 
