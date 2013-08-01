@@ -59,17 +59,17 @@ class UserApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
 
     // Returns details for a specific user
     get("/admin/api/users/:userID")(
-        req.use[Admin, UserEdit].in((prereqs, resp, recover) => {
-            resp.json( prereqs.userEdit.toJson.toString ).done
+        req.use[Admin, UserParam].in((prereqs, resp, recover) => {
+            resp.json( prereqs.userParam.toJson.toString ).done
         })
     )
 
     // Updates info for a specific user
     patch("/admin/api/users/:userID")(
-        req.use[Admin, UserEdit, BodyData].in((prereqs, resp, recover) => {
+        req.use[Admin, UserParam, BodyData].in((prereqs, resp, recover) => {
             for {
                 updated <- TryTo.except {
-                    prereqs.json.asObject.patch( prereqs.userEdit )
+                    prereqs.json.asObject.patch( prereqs.userParam )
                         .patch[String]("name", _ withName _)
                         .patch[String]("email", _ withEmail _)
                         .patch[Boolean]("isAdmin", _ setAdmin _)
@@ -91,8 +91,8 @@ class UserApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
 
     // Deletes a user
     delete("/admin/api/users/:userID")(
-        req.use[Admin, UserEdit].in((prereqs, resp, recover) => {
-            recover.fromFuture( data.delete( prereqs.userEdit ) ).onSuccess {
+        req.use[Admin, UserParam].in((prereqs, resp, recover) => {
+            recover.fromFuture( data.delete( prereqs.userParam ) ).onSuccess {
                 case _ => resp.json( nObject("status" -> "ok").toString ).done
             }
         })
@@ -107,9 +107,9 @@ class UserApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
 
     // Returns the sites a user has access to
     get("/admin/api/users/:userID/sites")(
-        req.use[Admin, UserEdit].in((prereqs, resp, recover) => {
+        req.use[Admin, UserParam].in((prereqs, resp, recover) => {
             resp.json( nElement(
-                prereqs.userEdit.sites.map(_.toString)
+                prereqs.userParam.sites.map(_.toString)
             ).toString ).done
         })
     )
@@ -127,7 +127,7 @@ class UserApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
 
     // Grants a user access to a specific site
     put("/admin/api/users/:userID/sites/:siteID")(
-        req.use[Admin, UserEdit].in((prereqs, resp, recover) => {
+        req.use[Admin, UserParam].in((prereqs, resp, recover) => {
             for {
                 siteID <- extractSiteID(recover, prereqs)
 
@@ -137,7 +137,7 @@ class UserApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
                     recover.orRethrow( new InvalidData("Site does not exist") )
                 }
 
-                newUser <- Some( prereqs.userEdit.addSite(siteID) )
+                newUser <- Some( prereqs.userParam.addSite(siteID) )
 
                 _ <- recover.fromFuture( data.save(newUser) )
 
@@ -147,11 +147,11 @@ class UserApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
 
     // Revokes user access to a site
     delete("/admin/api/users/:userID/sites/:siteID")(
-        req.use[Admin, UserEdit].in((prereqs, resp, recover) => {
+        req.use[Admin, UserParam].in((prereqs, resp, recover) => {
             for {
                 siteID <- extractSiteID(recover, prereqs)
 
-                newUser <- Some( prereqs.userEdit.removeSite(siteID) )
+                newUser <- Some( prereqs.userParam.removeSite(siteID) )
 
                 _ <- recover.fromFuture( data.save(newUser) )
 

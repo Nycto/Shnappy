@@ -12,25 +12,25 @@ import java.util.UUID
 /**
  * Extracts a user being interacted with in the API
  */
-trait UserEdit {
+trait UserParam {
 
     /** The user being edited */
-    def userEdit: User
+    def userParam: User
 
     /** {@inheritDoc} */
-    override def toString = "UserEdit(%s)".format( userEdit )
+    override def toString = "UserParam(%s)".format( userParam )
 }
 
 /**
- * Builds an UserEdit prereq
+ * Builds an UserParam prereq
  */
-class UserEditProvider( val data: AdminData ) extends Provider[UserEdit] {
+class UserParamProvider( val data: AdminData ) extends Provider[UserParam] {
 
     /** {@inheritDoc} */
     override def dependencies: Set[Class[_]] = Set( classOf[Auth] )
 
     /** {@inheritDoc} */
-    override def build( bundle: Bundle, next: Promise[UserEdit] ): Unit = {
+    override def build( bundle: Bundle, next: Promise[UserParam] ): Unit = {
         for {
 
             id <- TryTo.except {
@@ -46,8 +46,8 @@ class UserEditProvider( val data: AdminData ) extends Provider[UserEdit] {
                 next.failure( new NotFound("User does not exist") )
             }
 
-        } next.success(new UserEdit {
-            override val userEdit = user
+        } next.success(new UserParam {
+            override val userParam = user
         })
     }
 }
