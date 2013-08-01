@@ -74,6 +74,9 @@ case class User (
     def setSites( siteList: Set[UUID] ): User
         = User(id, revision, name, email, siteList, isAdmin)
 
+    /** Adds an additional site */
+    def addSite( siteID: UUID ): User = setSites( sites + siteID )
+
     /** Replaces this user as the admin */
     def setAdmin( admin: Boolean )
         = User(id, revision, name, email, sites, admin)

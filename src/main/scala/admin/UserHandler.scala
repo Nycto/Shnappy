@@ -159,7 +159,25 @@ class UserApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
     // Grants a user access to a specific site
     put("/admin/api/users/:userID/sites/:siteID")(
         req.use[Admin, UserEdit].in((prereqs, resp, recover) => {
-            resp.text("ok").done
+            for {
+                siteID <- TryTo.except {
+                    UUID.fromString( prereqs.request.params("siteID") )
+                } onFailMatch {
+                    case _: Throwable =>
+                        recover.orRethrow( new InvalidData("Invalid Site ID") )
+                }
+
+                siteOpt <- recover.fromFuture( data.getSite(siteID) )
+
+                _ <- siteOpt :: OnFail {
+                    recover.orRethrow( new InvalidData("Site does not exist") )
+                }
+
+                newUser <- Some( prereqs.userEdit.addSite(siteID) )
+
+                _ <- recover.fromFuture( data.save(newUser) )
+
+            } resp.json( newUser.toJson.toString ).done
         })
     )
 
