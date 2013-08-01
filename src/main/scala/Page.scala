@@ -116,11 +116,12 @@ case class Page (
 
     /** {@inheritDoc} */
     override def toJson = nObject(
-        "id" -> id.toString, "siteID" -> siteID.toString,
+        "contentID" -> id.toString,
+        "siteID" -> siteID.toString,
         "type" -> "page",
-        "markedIndex" -> markedIndex.map( DateGen.format _ ),
         "navSort" -> navSort.map( _.toString ),
-        "title" -> title, "slug" -> slug,
+        "title" -> title,
+        "slug" -> slug,
         "content" -> content.foldRight( nList() )( _.serialize :: _ )
     )
 }

@@ -150,9 +150,12 @@ case class RawLink (
 
     /** {@inheritDoc} */
     override def toJson = nObject(
-        "id" -> id.toString, "type" -> "link",
-        "siteID" -> siteID.toString, "navSort" -> link.sort.toString,
-        "text" -> link.text, "url" -> link.url
+        "contentID" -> id.toString,
+        "type" -> "link",
+        "siteID" -> siteID.toString,
+        "navSort" -> link.sort.toString,
+        "text" -> link.text,
+        "url" -> link.url
     )
 }
 

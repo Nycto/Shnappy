@@ -37,7 +37,10 @@ class ContentApiHandler (
     // Returns a specific piece of content
     get("/admin/api/content/:contentID")(
         req.use[Auth, ContentParam].in((prereqs, resp, recover) => {
-            resp.text("ok").done
+            resp.json( prereqs.contentParam match {
+                case Left(page) => page.toJson.toString
+                case Right(link) => link.toJson.toString
+            }).done
         })
     )
 
