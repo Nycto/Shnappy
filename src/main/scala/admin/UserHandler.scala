@@ -2,11 +2,9 @@ package com.roundeights.shnappy.admin
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.roundeights.skene._
-import com.roundeights.shnappy.Templater
 import com.roundeights.scalon._
 import com.roundeights.attempt._
 import java.util.UUID
-
 
 
 /**
@@ -100,7 +98,7 @@ class UserApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
 
     // Returns all the users that have access to a specific site
     get("/admin/api/sites/:siteID/users")(
-        req.use[Admin].in((prereqs, resp, recover) => {
+        req.use[Admin, SiteParam].in((prereqs, resp, recover) => {
             resp.text("ok").done
         })
     )
@@ -114,48 +112,31 @@ class UserApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
         })
     )
 
-    /** Safely extracts the siteID from a prereq object */
-    private def extractSiteID ( recover: Recover, prereq: Prereq ) = {
-        TryTo.except {
-            UUID.fromString( prereq.request.params("siteID") )
-        } onFailMatch {
-            case _: Throwable => recover.orRethrow(
-                new InvalidData("Invalid Site ID")
-            )
-        }
-    }
-
     // Grants a user access to a specific site
     put("/admin/api/users/:userID/sites/:siteID")(
-        req.use[Admin, UserParam].in((prereqs, resp, recover) => {
-            for {
-                siteID <- extractSiteID(recover, prereqs)
+        req.use[Admin, UserParam, SiteParam].in((prereqs, resp, recover) => {
 
-                siteOpt <- recover.fromFuture( data.getSite(siteID) )
+            val newUser = prereqs.userParam.addSite(
+                prereqs.siteParam.id
+            )
 
-                _ <- siteOpt :: OnFail {
-                    recover.orRethrow( new InvalidData("Site does not exist") )
-                }
-
-                newUser <- Some( prereqs.userParam.addSite(siteID) )
-
-                _ <- recover.fromFuture( data.save(newUser) )
-
-            } resp.json( newUser.toJson.toString ).done
+            recover.fromFuture( data.save(newUser) ).onSuccess {
+                case _ => resp.json( newUser.toJson.toString ).done
+            }
         })
     )
 
     // Revokes user access to a site
     delete("/admin/api/users/:userID/sites/:siteID")(
-        req.use[Admin, UserParam].in((prereqs, resp, recover) => {
-            for {
-                siteID <- extractSiteID(recover, prereqs)
+        req.use[Admin, UserParam, SiteParam].in((prereqs, resp, recover) => {
 
-                newUser <- Some( prereqs.userParam.removeSite(siteID) )
+            val newUser = prereqs.userParam.removeSite(
+                prereqs.siteParam.id
+            )
 
-                _ <- recover.fromFuture( data.save(newUser) )
-
-            } resp.json( newUser.toJson.toString ).done
+            recover.fromFuture( data.save(newUser) ).onSuccess {
+                case _ => resp.json( newUser.toJson.toString ).done
+            }
         })
     )
 }

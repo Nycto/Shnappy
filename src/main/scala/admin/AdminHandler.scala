@@ -21,6 +21,7 @@ class AdminHandler(
         .register[Admin]( new AdminProvider )
         .register[SiteEditor]( new SiteEditorProvider )
         .register[UserParam]( new UserParamProvider(data) )
+        .register[SiteParam]( new SiteParamProvider(data) )
         .register[BodyData]( new BodyDataProvider )
         .register[Persona]( new PersonaProvider(
             audience = "%s://%s:%d".format(

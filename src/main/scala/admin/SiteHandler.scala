@@ -55,28 +55,17 @@ class SiteApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
 
     // Returns the details about a specific site
     get("/admin/api/sites/:siteID")(
-        req.use[SiteEditor].in((prereqs, resp, recover) => {
-            recover.fromFuture(
-                data.getSite( prereqs.siteID )
-            ).onSuccess {
-                case None => throw new NotFound("Site not be found")
-                case Some(site) => resp.json( site.toJson.toString ).done
-            }
+        req.use[SiteEditor, SiteParam].in((prereqs, resp, recover) => {
+            resp.json( prereqs.siteParam.toJson.toString ).done
         })
     )
 
     // Updates specified values for a site
     patch("/admin/api/sites/:siteID")(
-        req.use[SiteEditor, BodyData].in((prereqs, resp, recover) => {
+        req.use[SiteEditor, SiteParam, BodyData].in((prereqs, resp, recover)=>{
             for {
-                siteOpt <- recover.fromFuture( data.getSite(prereqs.siteID) )
-
-                site <- siteOpt :: OnFail {
-                    recover.orRethrow( new NotFound("Site not be found") )
-                }
-
                 updated <- TryTo.except {
-                    prereqs.json.asObject.patch(site)
+                    prereqs.json.asObject.patch( prereqs.siteParam )
                         .patch[String]("theme", _ withTheme _)
                         .patchElem("title", (site, title) => {
                             site.withTitle( title.asString_? )
