@@ -28,9 +28,6 @@ trait UserParam {
 class UserParamProvider( val data: AdminData ) extends Provider[UserParam] {
 
     /** {@inheritDoc} */
-    override def dependencies: Set[Class[_]] = Set( classOf[Auth] )
-
-    /** {@inheritDoc} */
     override def build( bundle: Bundle, next: Promise[UserParam] ): Unit = {
         for {
 
@@ -72,9 +69,6 @@ trait SiteParam {
 class SiteParamProvider( val data: AdminData ) extends Provider[SiteParam] {
 
     /** {@inheritDoc} */
-    override def dependencies: Set[Class[_]] = Set( classOf[Auth] )
-
-    /** {@inheritDoc} */
     override def build( bundle: Bundle, next: Promise[SiteParam] ): Unit = {
         for {
 
@@ -97,6 +91,7 @@ class SiteParamProvider( val data: AdminData ) extends Provider[SiteParam] {
         })
     }
 }
+
 
 
 
