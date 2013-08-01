@@ -24,6 +24,15 @@ class AdminData ( private val db: Database, private val parser: Parser ) {
         "usersBySiteID" -> "/couchdb/usersBySiteID"
     ), Duration(3, "second") )
 
+
+    /** Parses a piece of content */
+    private def parseContent ( doc: Doc ): Either[Page, RawLink] = {
+        doc.str("type") match {
+            case "page" => Left( Page(doc, parser) )
+            case "link" => Right( RawLink(doc) )
+        }
+    }
+
     /** Returns a user by their ID */
     def getUserByEmail ( email: String ): Future[Option[User]] = {
         design.view("usersByEmail").key(email).limit(1).exec
@@ -60,11 +69,12 @@ class AdminData ( private val db: Database, private val parser: Parser ) {
         design.view("contentBySite")
             .startKey( nString(siteID.toString), nNull() )
             .endKey( nString(siteID.toString), nObject() )
-            .exec.map( _.map( doc => doc.str("type") match {
-                case "page" => Left( Page(doc, parser) )
-                case "link" => Right( RawLink(doc) )
-            }))
+            .exec.map( _.map( parseContent _ ) )
     }
+
+    /** Returns a single piece of content */
+    def getContent( contentID: UUID ): Future[Option[Either[Page,RawLink]]]
+        = db.get( contentID.toString ).map( _.map( parseContent _ ) )
 
     /** Saves a document */
     def save ( doc: Documentable ): Future[Written] = db.put( doc )

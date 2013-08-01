@@ -29,28 +29,28 @@ class ContentApiHandler (
 
     // Creates a new piece of content
     post("/admin/api/sites/:siteID/content")(
-        req.use[SiteEditor].in((prereqs, resp, recover) => {
+        req.use[SiteEditor, SiteParam].in((prereqs, resp, recover) => {
             resp.text("ok").done
         })
     )
 
     // Returns a specific piece of content
-    get("/admin/api/content/:id")(
-        req.use[Auth].in((prereqs, resp, recover) => {
+    get("/admin/api/content/:contentID")(
+        req.use[Auth, ContentParam].in((prereqs, resp, recover) => {
             resp.text("ok").done
         })
     )
 
     // Updates a specific piece of content
-    patch("/admin/api/content/:id")(
-        req.use[Auth].in((prereqs, resp, recover) => {
+    patch("/admin/api/content/:contentID")(
+        req.use[Auth, ContentParam].in((prereqs, resp, recover) => {
             resp.text("ok").done
         })
     )
 
     // Deletes a specific piece of content
-    delete("/admin/api/content/:id")(
-        req.use[Auth].in((prereqs, resp, recover) => {
+    delete("/admin/api/content/:contentID")(
+        req.use[Auth, ContentParam].in((prereqs, resp, recover) => {
             resp.text("ok").done
         })
     )

@@ -92,6 +92,48 @@ class SiteParamProvider( val data: AdminData ) extends Provider[SiteParam] {
     }
 }
 
+/**
+ * Extracts a piece of content being interacted with in the API
+ */
+trait ContentParam {
+
+    /** The content being engaged */
+    def contentParam: Either[Page, RawLink]
+
+    /** {@inheritDoc} */
+    override def toString = "Content(%s)".format( contentParam )
+}
+
+/**
+ * Builds an ContentParam prereq
+ */
+class ContentParamProvider(
+    val data: AdminData
+) extends Provider[ContentParam] {
+
+    /** {@inheritDoc} */
+    override def build( bundle: Bundle, next: Promise[ContentParam] ): Unit = {
+        for {
+
+            id <- TryTo.except {
+                UUID.fromString( bundle.request.params("contentID") )
+            } onFailMatch {
+                case _: Throwable => next.failure(
+                    new InvalidData("Invalid Content ID")
+                )
+            }
+
+            opt <- data.getContent(id) :: OnFail.alsoFail(next)
+
+            content <- opt :: OnFail {
+                next.failure( new NotFound("Content does not exist") )
+            }
+
+        } next.success(new ContentParam {
+            override val contentParam = content
+        })
+    }
+}
 
 
 
