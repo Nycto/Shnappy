@@ -20,13 +20,23 @@ class AdminData ( private val db: Database, private val parser: Parser ) {
         "usersByEmail"  -> "/couchdb/usersByEmail",
         "sites"         -> "/couchdb/sites",
         "contentBySite" -> "/couchdb/contentBySite",
-        "users"         -> "/couchdb/users"
+        "users"         -> "/couchdb/users",
+        "usersBySiteID" -> "/couchdb/usersBySiteID"
     ), Duration(3, "second") )
 
     /** Returns a user by their ID */
     def getUserByEmail ( email: String ): Future[Option[User]] = {
         design.view("usersByEmail").key(email).limit(1).exec
             .map( _.headOption.map( doc => User(doc) ) )
+    }
+
+    /** Returns a user by their ID */
+    def getUsersBySiteID ( siteID: UUID ): Future[Seq[User]] = {
+        design.view("usersBySiteID")
+            .startKey( nString(siteID.toString), nNull() )
+            .endKey( nString(siteID.toString), nObject() )
+            .exec
+            .map( _.map( doc => User(doc) ) )
     }
 
     /** Returns a user by their ID */

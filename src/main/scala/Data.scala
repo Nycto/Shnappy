@@ -26,6 +26,9 @@ object Data {
         }
     ))
 
+    /** A simple builder for local debugging */
+    def apply(): Data = apply( Env.local, Parser.parser )
+
     /** Thrown when trying to build one object from wrongly typed source data */
     class WrongType( message: String ) extends Exception(message)
 
