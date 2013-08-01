@@ -77,6 +77,9 @@ case class User (
     /** Adds an additional site */
     def addSite( siteID: UUID ): User = setSites( sites + siteID )
 
+    /** Removes a site from a user */
+    def removeSite( siteID: UUID ): User = setSites( sites - siteID )
+
     /** Replaces this user as the admin */
     def setAdmin( admin: Boolean )
         = User(id, revision, name, email, sites, admin)

@@ -156,16 +156,22 @@ class UserApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
         })
     )
 
+    /** Safely extracts the siteID from a prereq object */
+    private def extractSiteID ( recover: Recover, prereq: Prereq ) = {
+        TryTo.except {
+            UUID.fromString( prereq.request.params("siteID") )
+        } onFailMatch {
+            case _: Throwable => recover.orRethrow(
+                new InvalidData("Invalid Site ID")
+            )
+        }
+    }
+
     // Grants a user access to a specific site
     put("/admin/api/users/:userID/sites/:siteID")(
         req.use[Admin, UserEdit].in((prereqs, resp, recover) => {
             for {
-                siteID <- TryTo.except {
-                    UUID.fromString( prereqs.request.params("siteID") )
-                } onFailMatch {
-                    case _: Throwable =>
-                        recover.orRethrow( new InvalidData("Invalid Site ID") )
-                }
+                siteID <- extractSiteID(recover, prereqs)
 
                 siteOpt <- recover.fromFuture( data.getSite(siteID) )
 
@@ -184,7 +190,14 @@ class UserApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
     // Revokes user access to a site
     delete("/admin/api/users/:userID/sites/:siteID")(
         req.use[Admin, UserEdit].in((prereqs, resp, recover) => {
-            resp.text("ok").done
+            for {
+                siteID <- extractSiteID(recover, prereqs)
+
+                newUser <- Some( prereqs.userEdit.removeSite(siteID) )
+
+                _ <- recover.fromFuture( data.save(newUser) )
+
+            } resp.json( newUser.toJson.toString ).done
         })
     )
 }
