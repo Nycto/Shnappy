@@ -51,6 +51,7 @@ class ContentApiHandler (
                 content: Documentable with nElement.ToJson <- TryTo.except {
                     typename match {
                         case "page" => Page(prereqs.siteParam, parser, json)
+                        case "link" => RawLink(prereqs.siteParam, json)
                         case _ => throw new InvalidData("Invalid content type")
                     }
                 } onFailMatch {

@@ -133,6 +133,15 @@ object RawLink {
             )
         )
     }
+
+    /** Creates an RawLink from a json object */
+    def apply ( site: SiteInfo, json: nObject ) = new RawLink(
+        UUID.randomUUID, None, site.id,
+        NavLink(
+            json.str("url"), json.str("text"),
+            new SortKey( json.get("navSort").asString )
+        )
+    )
 }
 
 /** Represents a link without an associated page */
