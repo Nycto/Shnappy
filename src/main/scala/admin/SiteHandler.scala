@@ -26,10 +26,11 @@ class SiteApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
     // Create a new site
     post("/admin/api/sites")(
         req.use[Admin, BodyData].in((prereqs, resp, recover) => {
+            val json = prereqs.json
+
             for {
 
                 site <- TryTo.except {
-                    val json = prereqs.json.asObject
                     SiteInfo(
                         json.str("theme"),
                         json.str("title"),
@@ -63,9 +64,10 @@ class SiteApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
     // Updates specified values for a site
     patch("/admin/api/sites/:siteID")(
         req.use[SiteEditor, SiteParam, BodyData].in((prereqs, resp, recover)=>{
+
             for {
                 updated <- TryTo.except {
-                    prereqs.json.asObject.patch( prereqs.siteParam )
+                    prereqs.json.patch( prereqs.siteParam )
                         .patch[String]("theme", _ withTheme _)
                         .patchElem("title", (site, title) => {
                             site.withTitle( title.asString_? )

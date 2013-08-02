@@ -24,10 +24,11 @@ class UserApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
     // Creates a new user
     post("/admin/api/users")(
         req.use[Admin, BodyData].in((prereqs, resp, recover) => {
+            val json = prereqs.json
+
             for {
 
                 user <- TryTo.except {
-                    val json = prereqs.json.asObject
                     User(
                         json.str("name"),
                         json.str("email"),
@@ -65,9 +66,10 @@ class UserApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
     // Updates info for a specific user
     patch("/admin/api/users/:userID")(
         req.use[Admin, UserParam, BodyData].in((prereqs, resp, recover) => {
+
             for {
                 updated <- TryTo.except {
-                    prereqs.json.asObject.patch( prereqs.userParam )
+                    prereqs.json.patch( prereqs.userParam )
                         .patch[String]("name", _ withName _)
                         .patch[String]("email", _ withEmail _)
                         .patch[Boolean]("isAdmin", _ setAdmin _)

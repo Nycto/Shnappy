@@ -33,15 +33,9 @@ class ContentApiHandler (
     // Creates a new piece of content
     post("/admin/api/sites/:siteID/content")(
         req.use[SiteEditor, SiteParam, BodyData].in((prereqs, resp, recover)=>{
+            val json = prereqs.json
+
             for {
-
-                json <- TryTo.except( prereqs.json.asObject ).onFailMatch {
-                    case err: nException => recover.orRethrow(
-                        new InvalidData( err.getMessage )
-                    )
-                    case err: Throwable => recover.orRethrow(err)
-                }
-
                 typename <- json.str_?("type") :: OnFail {
                     recover.orRethrow(
                         new InvalidData( "Missing a valid type parameter" )

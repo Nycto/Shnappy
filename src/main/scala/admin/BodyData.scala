@@ -29,7 +29,7 @@ object BodyData {
 trait BodyData {
 
     /** The parsed data */
-    def json: nElement
+    def json: nObject
 
     /** {@inheritDoc} */
     override def toString = "BodyData(%s)".format( json.toString )
@@ -45,17 +45,17 @@ class BodyDataProvider extends Provider[BodyData] {
         val req = bundle.request
 
         try {
-            val data: nElement = req.getContentType match {
+            val data = req.getContentType match {
                 case Some("application/x-www-form-urlencoded")
-                    => nElement( QueryString( req.bodyStr ).toMap )
+                    => nElement( QueryString( req.bodyStr ).toMap ).asObject
 
                 // @TODO: Check for the json content type
-                case _ => nParser.json( req.bodyStr )
+                case _ => nParser.json( req.bodyStr ).asObject
             }
 
             next.success(new BodyData { override val json = data })
         } catch {
-            case err: nParserException => next.failure(
+            case err: nException => next.failure(
                 new BodyData.InvalidContent("Invalid JSON: %s".format(
                     err.getMessage
                 ))
