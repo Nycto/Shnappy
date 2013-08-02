@@ -87,7 +87,15 @@ class ContentApiHandler (
     // Deletes a specific piece of content
     delete("/admin/api/content/:contentID")(
         req.use[Auth, ContentParam].in((prereqs, resp, recover) => {
-            resp.text("ok").done
+
+            recover.fromFuture( data.delete(
+                prereqs.contentParam match {
+                    case Left(doc) => doc
+                    case Right(doc) => doc
+                }
+            ) ).onSuccess {
+                case _ => resp.json( nObject("status" -> "ok").toString ).done
+            }
         })
     )
 }
