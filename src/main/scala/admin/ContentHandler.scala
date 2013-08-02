@@ -32,7 +32,9 @@ class ContentApiHandler (
 
     // Creates a new piece of content
     post("/admin/api/sites/:siteID/content")(
-        req.use[SiteEditor, SiteParam, BodyData].in((prereqs, resp, recover)=>{
+        req.use[
+            SiteEditor, SiteParam, BodyData
+        ].in((prereqs, resp, recover) => {
             val json = prereqs.json
 
             for {
@@ -63,7 +65,7 @@ class ContentApiHandler (
 
     // Returns a specific piece of content
     get("/admin/api/content/:contentID")(
-        req.use[Auth, ContentParam].in((prereqs, resp, recover) => {
+        req.use[ContentEditor, ContentParam].in((prereqs, resp, recover) => {
             resp.json( prereqs.contentParam match {
                 case Left(page) => page.toJson.toString
                 case Right(link) => link.toJson.toString
@@ -73,14 +75,18 @@ class ContentApiHandler (
 
     // Updates a specific piece of content
     patch("/admin/api/content/:contentID")(
-        req.use[Auth, ContentParam].in((prereqs, resp, recover) => {
+        req.use[
+            ContentEditor, BodyData, ContentParam
+        ].in((prereqs, resp, recover) => {
             resp.text("ok").done
         })
     )
 
     // Deletes a specific piece of content
     delete("/admin/api/content/:contentID")(
-        req.use[Auth, ContentParam].in((prereqs, resp, recover) => {
+        req.use[
+            ContentEditor, BodyData, ContentParam
+        ].in((prereqs, resp, recover) => {
 
             recover.fromFuture( data.delete(
                 prereqs.contentParam match {

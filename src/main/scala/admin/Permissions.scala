@@ -77,3 +77,38 @@ class AdminProvider extends Provider[Admin] {
 }
 
 
+/**
+ * Requires that the authenticated user has edit a piece of content
+ */
+trait ContentEditor {
+
+    /** {@inheritDoc} */
+    override def toString = "ContentEditor"
+}
+
+/**
+ * Builds a SiteEditor prereq
+ */
+class ContentEditorProvider extends Provider[ContentEditor] {
+
+    /** {@inheritDoc} */
+    override def dependencies: Set[Class[_]]
+        = Set( classOf[Auth], classOf[ContentParam] )
+
+    /** {@inheritDoc} */
+    override def build( bundle: Bundle, next: Promise[ContentEditor] ): Unit = {
+        val user = bundle.get[Auth].user
+
+        val siteID = bundle.get[ContentParam].contentParam match {
+            case Left(page) => page.siteID
+            case Right(link) => link.siteID
+        }
+
+        if ( user.canChange(siteID) )
+            next.success(new ContentEditor {})
+        else
+            next.failure(new Unauthorized("User can not edit content"))
+    }
+}
+
+

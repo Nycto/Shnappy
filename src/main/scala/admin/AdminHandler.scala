@@ -21,6 +21,7 @@ class AdminHandler(
         .register[Auth]( new AuthProvider(!env.adminDevMode, sessions, data) )
         .register[Admin]( new AdminProvider )
         .register[SiteEditor]( new SiteEditorProvider )
+        .register[ContentEditor]( new ContentEditorProvider )
         .register[UserParam]( new UserParamProvider(data) )
         .register[SiteParam]( new SiteParamProvider(data) )
         .register[ContentParam]( new ContentParamProvider(data) )
