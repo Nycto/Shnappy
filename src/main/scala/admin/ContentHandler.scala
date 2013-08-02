@@ -16,6 +16,9 @@ class ContentApiHandler (
     val req: Registry, val data: AdminData, val parser: Parser
 ) extends Skene {
 
+    // A common type for content objects
+    type Content = Documentable with nElement.ToJson
+
     // Returns all the content for a specific site
     get("/admin/api/sites/:siteID/content")(
         req.use[SiteEditor].in((prereqs, resp, recover) => {
@@ -44,7 +47,7 @@ class ContentApiHandler (
                     )
                 }
 
-                content: Documentable with nElement.ToJson <- TryTo.except {
+                content: Content <- TryTo.except {
                     typename match {
                         case "page" => Page(prereqs.siteParam, parser, json)
                         case "link" => RawLink(prereqs.siteParam, json)
@@ -77,9 +80,37 @@ class ContentApiHandler (
     patch("/admin/api/content/:contentID")(
         req.use[
             ContentEditor, BodyData, ContentParam
-        ].in((prereqs, resp, recover) => {
-            resp.text("ok").done
-        })
+        ].in((prereqs, resp, recover) => for {
+
+            updated: Content <- TryTo.except {
+                prereqs.contentParam match {
+
+                    case Left(page) => {
+                        prereqs.json.patch( page )
+                            .done
+                    }
+
+                    case Right(link) => {
+                        prereqs.json.patch( link )
+                            .patch[String]("url", _ withURL _)
+                            .patch[String]("text", _ withText _)
+                            .patchElem("navSort", (link, sort) => {
+                                link.withSort( sort.asString )
+                            })
+                            .done
+                    }
+
+                }
+            } onFailMatch {
+                case err: nException => recover.orRethrow(
+                    new InvalidData( err.getMessage )
+                )
+                case err: Throwable => recover.orRethrow(err)
+            }
+
+            _ <- recover.fromFuture( data.save(updated) )
+
+        } resp.json( updated.toJson.toString ).done )
     )
 
     // Deletes a specific piece of content

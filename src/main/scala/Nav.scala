@@ -89,6 +89,13 @@ class NavLink (
     /** Sets the URL of this link */
     def withURL( newURL: String ) = NavLink( newURL, text, sort )
 
+    /** Sets the text of this link */
+    def withText ( newText: String ) = NavLink( url, newText, sort )
+
+    /** Sets the sort key of this link */
+    def withSort ( newSort: String )
+        = NavLink( url, text, new SortKey(newSort) )
+
     /** {@inheritDoc} */
     override def toString = "NavLink(%s, %s, %s)".format(url, text, sort)
 
@@ -151,6 +158,18 @@ case class RawLink (
     val siteID: UUID,
     val link: NavLink
 ) extends Documentable with nElement.ToJson {
+
+    /** Sets the URL of this link */
+    def withURL( newURL: String )
+        = RawLink( id, revision, siteID, link.withURL(newURL) )
+
+    /** Sets the text of this link */
+    def withText ( newText: String )
+        = RawLink( id, revision, siteID, link.withText(newText) )
+
+    /** Sets the sort key of this link */
+    def withSort ( newSort: String )
+        = RawLink( id, revision, siteID, link.withSort(newSort) )
 
     /** {@inheritDoc} */
     override def toDoc = Doc(
