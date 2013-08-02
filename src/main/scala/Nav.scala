@@ -6,6 +6,14 @@ import com.roundeights.vfunk.{Validate, Filter, TextField}
 import com.roundeights.scalon._
 import java.util.UUID
 
+/** @see SortKey */
+object SortKey {
+
+    /** Optionally creates a new instance */
+    def apply ( elem: Option[nElement] ): Option[SortKey]
+        = elem.map( value => new SortKey(value.asString) )
+}
+
 /** Represents the sort position of an element in the Nav */
 case class SortKey ( val keys: IndexedSeq[Int] ) {
 
@@ -22,7 +30,6 @@ case class SortKey ( val keys: IndexedSeq[Int] ) {
 
     /** Generates a sort key that will put another element after this one */
     def after = new SortKey( IndexedSeq( keys(0) + 1 ) )
-
 }
 
 /** @see NavLink */

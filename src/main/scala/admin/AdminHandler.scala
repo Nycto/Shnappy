@@ -4,12 +4,13 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import com.roundeights.skene._
 import com.roundeights.scalon.nObject
 import com.roundeights.shnappy._
+import com.roundeights.shnappy.component.Parser
 
 /**
  * Admin handlers
  */
 class AdminHandler(
-    env: Env, data: AdminData, baseTemplate: Templater
+    env: Env, data: AdminData, baseTemplate: Templater, parser: Parser
 ) extends Skene {
 
     /** Session token manager */
@@ -103,7 +104,7 @@ class AdminHandler(
         }
 
         delegate( new AuthApiHandler(prereq, env, data, sessions) )
-        delegate( new ContentApiHandler(prereq, data) )
+        delegate( new ContentApiHandler(prereq, data, parser) )
         delegate( new SiteApiHandler(prereq, data) )
         delegate( new UserApiHandler(prereq, data) )
     })

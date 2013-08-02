@@ -1,16 +1,19 @@
 package com.roundeights.shnappy.admin
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import com.roundeights.foldout.Documentable
+import com.roundeights.shnappy.component.Parser
+import com.roundeights.shnappy._
 import com.roundeights.skene._
 import com.roundeights.scalon._
-import com.roundeights.shnappy.Templater
+import com.roundeights.attempt._
 import java.util.UUID
 
 /**
  * Page API handlers
  */
 class ContentApiHandler (
-    val req: Registry, val data: AdminData
+    val req: Registry, val data: AdminData, val parser: Parser
 ) extends Skene {
 
     // Returns all the content for a specific site
@@ -29,8 +32,37 @@ class ContentApiHandler (
 
     // Creates a new piece of content
     post("/admin/api/sites/:siteID/content")(
-        req.use[SiteEditor, SiteParam].in((prereqs, resp, recover) => {
-            resp.text("ok").done
+        req.use[SiteEditor, SiteParam, BodyData].in((prereqs, resp, recover)=>{
+            for {
+
+                json <- TryTo.except( prereqs.json.asObject ).onFailMatch {
+                    case err: nException => recover.orRethrow(
+                        new InvalidData( err.getMessage )
+                    )
+                    case err: Throwable => recover.orRethrow(err)
+                }
+
+                typename <- json.str_?("type") :: OnFail {
+                    recover.orRethrow(
+                        new InvalidData( "Missing a valid type parameter" )
+                    )
+                }
+
+                content: Documentable with nElement.ToJson <- TryTo.except {
+                    typename match {
+                        case "page" => Page(prereqs.siteParam, parser, json)
+                        case _ => throw new InvalidData("Invalid content type")
+                    }
+                } onFailMatch {
+                    case err: nException => recover.orRethrow(
+                        new InvalidData( err.getMessage )
+                    )
+                    case err: Throwable => recover.orRethrow(err)
+                }
+
+                _ <- recover.fromFuture( data.save(content) )
+
+            } resp.json( content.toJson.toString ).done
         })
     )
 

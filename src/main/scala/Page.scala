@@ -1,6 +1,6 @@
 package com.roundeights.shnappy
 
-import com.roundeights.shnappy.component.{Component, Parser}
+import com.roundeights.shnappy.component.{Component, Parser, Markdown}
 import com.roundeights.foldout.{Doc, Documentable}
 import com.roundeights.scalon._
 import com.roundeights.vfunk.{Validate, Filter, TextField}
@@ -15,6 +15,20 @@ object Page {
         UUID.randomUUID, None, siteID, title, slug, Nil, None, None
     )
 
+    /** Creates a new instance from a JSON object */
+    def apply ( site: SiteInfo, parser: Parser, json: nObject ) = new Page(
+        UUID.randomUUID(), None, site.id,
+        json.str("title"), json.str("slug"),
+        {
+            if ( json.get("content").isString )
+                Seq( new Markdown( json.str("content") ) )
+            else
+                parser.parse( json.ary("content") )
+        },
+        json.str_?("markedIndex").map( DateGen.parse _ ),
+        SortKey( json.get_?("navSort") )
+    )
+
     /** Creates a Page from a document and a parser */
     def apply ( doc: Doc, parser: Parser ) = Data.checktype(doc, "page") {
         new Page(
@@ -25,7 +39,7 @@ object Page {
             doc.str("slug"),
             parser.parse( doc.ary("content") ),
             doc.str_?("markedIndex").map( DateGen.parse _ ),
-            doc.get_?("navSort").map( value => new SortKey(value.asString) )
+            SortKey( doc.get_?("navSort") )
         )
     }
 

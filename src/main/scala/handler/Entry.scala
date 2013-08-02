@@ -35,7 +35,9 @@ class SiteEntry ( env: Env ) extends Skene {
     delegate( new UtilEntry(env) )
 
     // Handle Admin requests
-    request("/admin/**")( new AdminHandler(env, data.admin, templates) )
+    request("/admin/**")(
+        new AdminHandler(env, data.admin, templates, Parser.parser)
+    )
 
     // Default behavior is to render this as a slug
     default( (recover: Recover, request: Request, response: Response) => {
