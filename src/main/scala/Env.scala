@@ -32,7 +32,9 @@ object Env {
             css = AssetLoader.fromDir(
                 new File(rootDir, "target/resources"), "css"
             ),
-            js = AssetLoader.fromDir( rootDir, "js" ),
+            js = AssetLoader.fromDir(
+                new File(rootDir, "target/resources"), "js"
+            ),
             assets = AssetLoader.fromDir( rootDir, "assets" ),
             templates = Templater.inDir( new File(rootDir, "templates") ),
             adminHost = "127.0.0.1",
