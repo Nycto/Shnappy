@@ -90,6 +90,16 @@ case class Page (
     def navLink: Option[NavLink]
         = navSort.map(sort => NavLink("/" + slug, title, sort))
 
+    /** Sets the title of this page */
+    def withTitle( newTitle: String ): Page = Page(
+        id, revision, siteID, newTitle, slug, content, markedIndex, navSort
+    )
+
+    /** Sets the slug of this page */
+    def withSlug ( newSlug: String ): Page = Page(
+        id, revision, siteID, title, newSlug, content, markedIndex, navSort
+    )
+
     /** Returns a copy of this Page, but marked as the index */
     def setIndex( mark: Boolean ): Page = Page(
         id, revision, siteID, title, slug, content,

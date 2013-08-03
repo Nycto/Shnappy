@@ -2,7 +2,7 @@ package com.roundeights.shnappy.admin
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.roundeights.foldout.Documentable
-import com.roundeights.shnappy.component.Parser
+import com.roundeights.shnappy.component.{Parser, Markdown}
 import com.roundeights.shnappy._
 import com.roundeights.skene._
 import com.roundeights.scalon._
@@ -87,6 +87,27 @@ class ContentApiHandler (
 
                     case Left(page) => {
                         prereqs.json.patch( page )
+                            .patch[String]("title", _ withTitle _)
+                            .patch[String]("slug", _ withSlug _)
+                            .patchElem("index", (page, isIndex) => {
+                                page.setIndex(
+                                    if ( isIndex.isString )
+                                        isIndex.asString.toLowerCase == "true"
+                                    else
+                                        isIndex.asBool
+                                )
+                            })
+                            .patchElem("content", (page, content) => {
+                                page.setContent(
+                                    if ( content.isString )
+                                        Seq( new Markdown(content.asString) )
+                                    else
+                                        parser.parse( content.asArray )
+                                )
+                            })
+                            .patchElem("navSort", (page, sort) => {
+                                page.setNavSort( sort.asString )
+                            })
                             .done
                     }
 
