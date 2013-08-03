@@ -89,24 +89,10 @@ class ContentApiHandler (
                         prereqs.json.patch( page )
                             .patch[String]("title", _ withTitle _)
                             .patch[String]("slug", _ withSlug _)
-                            .patchElem("index", (page, isIndex) => {
-                                page.setIndex(
-                                    if ( isIndex.isString )
-                                        isIndex.asString.toLowerCase == "true"
-                                    else
-                                        isIndex.asBool
-                                )
-                            })
+                            .patchElem("index", _ setIndex _ )
+                            .patchElem("navSort", _ setNavSort _ )
                             .patchElem("content", (page, content) => {
-                                page.setContent(
-                                    if ( content.isString )
-                                        Seq( new Markdown(content.asString) )
-                                    else
-                                        parser.parse( content.asArray )
-                                )
-                            })
-                            .patchElem("navSort", (page, sort) => {
-                                page.setNavSort( sort.asString )
+                                page.setContent( parser.parse( content ) )
                             })
                             .done
                     }

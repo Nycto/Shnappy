@@ -69,7 +69,12 @@ class Parser ( parsers: Parser.CompParser* ) {
             ).parse( obj, parseComp )
         }
 
-        element.asArray.map( parseComp _ )
+        if ( element.isObject )
+            Seq( parseComp( element ) )
+        else if ( element.isString )
+            Seq( new Markdown( element.asString ) )
+        else
+            element.asArray.map( parseComp _ )
     }
 
 }

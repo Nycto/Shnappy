@@ -19,12 +19,7 @@ object Page {
     def apply ( site: SiteInfo, parser: Parser, json: nObject ) = new Page(
         UUID.randomUUID(), None, site.id,
         json.str("title"), json.str("slug"),
-        {
-            if ( json.get("content").isString )
-                Seq( new Markdown( json.str("content") ) )
-            else
-                parser.parse( json.ary("content") )
-        },
+        parser.parse( json.get("content") ),
         json.str_?("markedIndex").map( DateGen.parse _ ),
         SortKey( json.get_?("navSort") )
     )
@@ -110,6 +105,14 @@ case class Page (
     /** Returns a copy of this Page, but marked as the index */
     def setIndex: Page = setIndex( true )
 
+    /** Returns a copy of this Page, but marked as the index */
+    def setIndex( mark: nElement ): Page = setIndex(
+        if ( mark.isString )
+            mark.asString.toLowerCase == "true"
+        else
+            mark.asBool
+    )
+
     /** Sets the sort position of this page */
     def setNavSort( sort: Option[String] ): Page = Page(
         id, revision, siteID, title, slug, content, markedIndex,
@@ -118,6 +121,14 @@ case class Page (
 
     /** Sets the sort position of this page */
     def setNavSort( sort: String ): Page = setNavSort( Some(sort) )
+
+    /** Sets the sort position of this page */
+    def setNavSort( sort: nElement ): Page = {
+        if ( sort.isNull || sort.asString == "" )
+            setNavSort( None )
+        else
+            setNavSort( sort.asString )
+    }
 
     /** Sets the content of this page */
     def setContent( newContent: Seq[Component] ) = Page(
