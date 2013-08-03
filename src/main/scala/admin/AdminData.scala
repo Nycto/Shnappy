@@ -21,7 +21,8 @@ class AdminData ( private val db: Database, private val parser: Parser ) {
         "sites"         -> "/couchdb/sites",
         "contentBySite" -> "/couchdb/contentBySite",
         "users"         -> "/couchdb/users",
-        "usersBySiteID" -> "/couchdb/usersBySiteID"
+        "usersBySiteID" -> "/couchdb/usersBySiteID",
+        "pagesByIndex"   -> "/couchdb/pagesByIndex"
     ), Duration(3, "second") )
 
 
@@ -75,6 +76,15 @@ class AdminData ( private val db: Database, private val parser: Parser ) {
     /** Returns a single piece of content */
     def getContent( contentID: UUID ): Future[Option[Either[Page,RawLink]]]
         = db.get( contentID.toString ).map( _.map( parseContent _ ) )
+
+    /** Returns the index page for a site */
+    def getIndex( siteID: UUID ): Future[Option[Page]] = {
+        design.view("pagesByIndex")
+            .startKey( siteID.toString, nObject() )
+            .endKey( siteID.toString, nNull() )
+            .limit(1).desc.exec
+            .map( _.headOption.map(doc => Page(doc, parser)) )
+    }
 
     /** Saves a document */
     def save ( doc: Documentable ): Future[Written] = db.put( doc )

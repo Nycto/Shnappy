@@ -78,7 +78,6 @@ class LiveData (
     private val design = Await.result( db.designDir( classOf[Data],
         "siteInfoByHost" -> "/couchdb/siteInfoByHost",
         "pagesBySlug"    -> "/couchdb/pagesBySlug",
-        "pagesByIndex"   -> "/couchdb/pagesByIndex",
         "nav"            -> "/couchdb/nav",
         "lastUpdated"    -> "/couchdb/lastUpdated"
     ), Duration(3, "second") )
@@ -123,13 +122,8 @@ class LiveData (
         }
 
         /** {@inheritDoc} */
-        override def getIndex: Future[Option[Page]] = {
-            design.view("pagesByIndex")
-                .startKey( siteInfo.id.toString, nObject() )
-                .endKey( siteInfo.id.toString, nNull() )
-                .limit(1).desc.exec
-                .map( _.headOption.map(doc => Page(doc, parser)) )
-        }
+        override def getIndex: Future[Option[Page]]
+            = admin.getIndex( siteInfo.id )
 
         /** {@inheritDoc} */
         override protected def getRawNavLinks: Future[Seq[NavLink]] = {

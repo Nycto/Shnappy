@@ -33,6 +33,18 @@ class ContentApiHandler (
         })
     )
 
+    // Returns the index page for a site
+    get("/admin/api/sites/:siteID/index")(
+        req.use[SiteEditor].in((prereqs, resp, recover) => {
+            recover.fromFuture(
+                data.getIndex( prereqs.siteID )
+            ).onSuccess {
+                case None => throw new NotFound("No index for site")
+                case Some(page) => resp.json( page.toJson.toString ).done
+            }
+        })
+    )
+
     // Creates a new piece of content
     post("/admin/api/sites/:siteID/content")(
         req.use[
