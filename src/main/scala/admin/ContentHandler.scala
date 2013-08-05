@@ -150,17 +150,3 @@ class ContentApiHandler (
     )
 }
 
-/**
- * Page HTML handler
- */
-class ContentHtmlHandler (
-    val template: Templater, val req: Registry
-) extends Skene {
-
-    get("/admin/pages")(
-        req.use[Auth, AdminTemplate].in((prereqs, resp, recover) => {
-            resp.html( prereqs.template("admin/pages/pages") ).done
-        })
-    )
-}
-
