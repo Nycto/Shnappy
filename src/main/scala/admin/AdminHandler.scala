@@ -57,10 +57,8 @@ class AdminHandler(
         // Centralized error handler
         error((req, resp) => customErr(resp).orElse({
 
-            case err: BodyData.InvalidContent => {
-                err.printStackTrace
+            case err: BodyData.InvalidContent =>
                 formatErr( resp.badRequest, err.getMessage )
-            }
 
             case err: NotFound =>
                 formatErr( resp.notFound, err.getMessage )

@@ -16,11 +16,6 @@ object BodyData {
         def this(message: String) = this(message, null)
         def this(cause: Throwable) = this(null, cause)
     }
-
-    /** Thrown when the submitted data is missing a required key */
-    class MissingKey(key: String) extends InvalidContent(
-        "Request body is missing the '%s' key".format(key)
-    )
 }
 
 /**

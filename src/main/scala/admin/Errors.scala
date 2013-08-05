@@ -3,6 +3,11 @@ package com.roundeights.shnappy.admin
 /** Thrown when an input field is invalid */
 class InvalidData( message: String ) extends Exception( message )
 
+/** Thrown when the submitted data is missing a required key */
+class MissingKey(key: String) extends InvalidData(
+    "Request body is missing the '%s' key".format(key)
+)
+
 /** Thrown when a resource can't be found */
 class NotFound( message: String ) extends Exception( message )
 

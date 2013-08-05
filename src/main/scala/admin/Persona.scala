@@ -63,7 +63,7 @@ class PersonaProvider (
         for {
 
             assertion <- obj.str_?("assertion") :: OnFail {
-                next.failure( new BodyData.MissingKey("assertion") )
+                next.failure( new MissingKey("assertion") )
             }
 
             json <- verify(assertion) :: OnFail.alsoFail( next )
