@@ -35,7 +35,7 @@ class SiteEntry ( env: Env ) extends Skene {
     delegate( new UtilEntry(env) )
 
     // Handle Admin requests
-    request("/admin/**")(
+    request("/admin/**").or( request("/admin") )(
         new AdminHandler(env, data.admin, templates, Parser.parser)
     )
 
