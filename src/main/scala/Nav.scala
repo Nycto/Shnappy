@@ -133,7 +133,7 @@ object RawLink {
         new RawLink(
             UUID.fromString( doc.id ),
             Some( doc.rev ),
-            UUID.fromString( doc.str("siteID") ),
+            doc.uuid("siteID"),
             NavLink(
                 doc.str("url"), doc.str("text"),
                 new SortKey( doc.get("navSort").asString )

@@ -25,8 +25,7 @@ object User {
             Some( doc.rev ),
             doc.str("name"),
             doc.str("email"),
-            doc.ary_?("sites").getOrElse( nList() )
-                .map( elem => UUID.fromString(elem.asString) ).toSet,
+            doc.ary_?("sites").getOrElse( nList() ).map( _.asUUID ).toSet,
             doc.bool_?("isAdmin").getOrElse(false)
         )
     }

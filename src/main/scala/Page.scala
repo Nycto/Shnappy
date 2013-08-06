@@ -29,7 +29,7 @@ object Page {
         new Page(
             UUID.fromString( doc.id ),
             Some( doc.rev ),
-            UUID.fromString( doc.str("siteID") ),
+            doc.uuid("siteID"),
             doc.str("title"),
             doc.str("slug"),
             parser.parse( doc.ary("content") ),

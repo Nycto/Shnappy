@@ -33,12 +33,10 @@ class UserApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
                         json.str("name"),
                         json.str("email"),
                         if ( json.contains("site") ) {
-                            Set( UUID.fromString( json.str("site") ) )
+                            Set( json.uuid("site") )
                         }
                         else {
-                            json.ary("sites").map(
-                                siteID => UUID.fromString( siteID.asString )
-                            ).toSet
+                            json.ary("sites").map( _.asUUID ).toSet
                         },
                         json.bool_?("isAdmin").getOrElse( false )
                     )
@@ -74,9 +72,7 @@ class UserApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
                         .patch[String]("email", _ withEmail _)
                         .patch[Boolean]("isAdmin", _ setAdmin _)
                         .patch[nList]("sites", (user, sites) => {
-                            user.setSites( sites.map(
-                                siteID => UUID.fromString( siteID.toString )
-                            ).toSet )
+                            user.setSites( sites.map(_.asUUID).toSet )
                         })
                         .done
                 } onFailMatch {
