@@ -9,6 +9,32 @@ import scala.concurrent.Promise
 import java.util.UUID
 
 
+/**
+ * Helper methods for extracting request params
+ */
+object Params {
+
+    /** Parses a UUID */
+    def uuid(
+        fail: Promise[_], name: String, content: => String
+    ): Option[UUID] = {
+        try {
+            Some( UUID.fromString( content ) )
+        }
+        catch {
+            case _: IllegalArgumentException => {
+                fail.failure( new InvalidData("Invalid " + name) )
+                None
+            }
+            case err: Throwable => {
+                fail.failure(err)
+                None
+            }
+        }
+    }
+
+}
+
 
 /**
  * Extracts a user being interacted with in the API
@@ -31,12 +57,7 @@ class UserParamProvider( val data: AdminData ) extends Provider[UserParam] {
     override def build( bundle: Bundle, next: Promise[UserParam] ): Unit = {
         for {
 
-            id <- TryTo.except {
-                UUID.fromString( bundle.request.params("userID") )
-            } onFailMatch {
-                case _: Throwable =>
-                    next.failure( new InvalidData("Invalid user ID") )
-            }
+            id <- Params.uuid(next, "user ID", bundle.request.params("userID"))
 
             userOpt <- data.getUser(id) :: OnFail.alsoFail(next)
 
@@ -72,13 +93,7 @@ class SiteParamProvider( val data: AdminData ) extends Provider[SiteParam] {
     override def build( bundle: Bundle, next: Promise[SiteParam] ): Unit = {
         for {
 
-            id <- TryTo.except {
-                UUID.fromString( bundle.request.params("siteID") )
-            } onFailMatch {
-                case _: Throwable => next.failure(
-                    new InvalidData("Invalid site ID")
-                )
-            }
+            id <- Params.uuid(next, "site ID", bundle.request.params("siteID"))
 
             opt <- data.getSite(id) :: OnFail.alsoFail(next)
 
@@ -115,13 +130,9 @@ class ContentParamProvider(
     override def build( bundle: Bundle, next: Promise[ContentParam] ): Unit = {
         for {
 
-            id <- TryTo.except {
-                UUID.fromString( bundle.request.params("contentID") )
-            } onFailMatch {
-                case _: Throwable => next.failure(
-                    new InvalidData("Invalid Content ID")
-                )
-            }
+            id <- Params.uuid(
+                next, "content ID", bundle.request.params("contentID")
+            )
 
             opt <- data.getContent(id) :: OnFail.alsoFail(next)
 

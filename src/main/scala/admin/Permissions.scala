@@ -33,12 +33,7 @@ class SiteEditorProvider extends Provider[SiteEditor] {
 
         for {
 
-            id <- TryTo.except {
-                UUID.fromString( bundle.request.params("siteID") )
-            } onFailMatch {
-                case _: Throwable =>
-                    next.failure( new InvalidData("Invalid site ID") )
-            }
+            id <- Params.uuid(next, "site ID", bundle.request.params("siteID"))
 
             _ <- user.canChange( id ) :: OnFail {
                 next.failure(new Unauthorized("User can not access site"))
