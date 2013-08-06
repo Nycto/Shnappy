@@ -14,7 +14,7 @@ class AdminHandler(
 ) extends Skene {
 
     /** Session token manager */
-    val sessions = new Session(env.secretKey)
+    val sessions = new Session(env)
 
     /** A registry of Prereq providers */
     val prereq = Registry()
@@ -102,7 +102,7 @@ class AdminHandler(
             ).toString ).done
         }
 
-        delegate( new AuthApiHandler(prereq, env, data, sessions) )
+        delegate( new AuthApiHandler(prereq, data, sessions) )
         delegate( new ContentApiHandler(prereq, data, parser) )
         delegate( new SiteApiHandler(prereq, data) )
         delegate( new UserApiHandler(prereq, data) )

@@ -1,7 +1,6 @@
 package com.roundeights.shnappy.admin
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import com.roundeights.shnappy.Env
 import com.roundeights.skene._
 import com.roundeights.scalon.nObject
 
@@ -9,7 +8,6 @@ import com.roundeights.scalon.nObject
 /** Authentication handlers */
 class AuthApiHandler(
     private val req: Registry,
-    private val env: Env,
     private val data: AdminData,
     private val session: Session
 ) extends Skene {
@@ -27,15 +25,7 @@ class AuthApiHandler(
                     new Unauthorized("User does not exist")
                 )
                 case Some(user) => {
-                    val cookie = Cookie(
-                        name = "auth",
-                        value = session.token( user ),
-                        domain = Some(env.adminHost),
-                        secure = !env.adminDevMode,
-                        httpOnly = true
-                    )
-
-                    resp.cookie( cookie ).json(ok).done
+                    resp.cookie( session.cookie(user) ).json(ok).done
                 }
             }
         }

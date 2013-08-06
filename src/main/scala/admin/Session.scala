@@ -4,13 +4,17 @@ import scala.concurrent.Promise
 import scala.concurrent.ExecutionContext.Implicits.global
 import java.util.{Date, UUID}
 import com.roundeights.hasher.{Algo, Hash}
-import com.roundeights.skene.{Provider, Bundle, Registry}
+import com.roundeights.skene.{Provider, Bundle, Registry, Cookie}
+import com.roundeights.shnappy.Env
 import com.roundeights.attempt._
 
 /**
  * Parses and creates session tokens
  */
-class Session ( secret: String ) {
+class Session ( private val env: Env ) {
+
+    // An alias for the secret key
+    private val secret: String = env.secretKey
 
     /** Returns the HMAC seed needed for the given time offset */
     private def timeSeed ( offset: Int ): String = {
@@ -44,6 +48,16 @@ class Session ( secret: String ) {
 
         checkOffset(0)
     }
+
+    /** Builds a current session cookie for a user */
+    def cookie ( user: User ): Cookie = Cookie(
+        name = "auth",
+        value = token( user ),
+        domain = Some(env.adminHost),
+        path = Some("/admin"),
+        secure = !env.adminDevMode,
+        httpOnly = true
+    )
 }
 
 /**
@@ -104,9 +118,10 @@ class AuthProvider (
                 next.failure( new Unauthenticated("User does not exist") )
             }
 
-        } next.success( new Auth {
-            override val user = userObj
-        } )
+        } {
+            bundle.response.cookie( session.cookie( userObj ) )
+            next.success( new Auth { override val user = userObj } )
+        }
     }
 }
 
