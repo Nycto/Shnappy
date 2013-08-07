@@ -16,6 +16,9 @@ class HtmlHandler (
             if ( prereqs.user.sites.size > 1 || prereqs.user.isAdmin ) {
                 resp.html( prereqs.template("admin/pages/sites") ).done
             }
+            else if ( prereqs.user.sites.size == 0 ) {
+                throw new Unauthorized("User can not edit any sites")
+            }
             else {
                 resp.moved("/admin/site/%s".format(
                     prereqs.user.sites.head.toString
