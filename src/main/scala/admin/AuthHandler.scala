@@ -31,9 +31,7 @@ class AuthApiHandler(
         }
     ))
 
-    put("/admin/api/logout")(req.use[Auth].in((prereqs, resp, recover) => {
-        resp.cookie( Cookie("auth", "", ttl = None) ).json(ok).done
-    }))
+    put("/admin/api/logout")( _.cookie( session.deleteCookie ).json(ok).done )
 
 }
 

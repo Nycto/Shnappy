@@ -58,6 +58,15 @@ class Session ( private val env: Env ) {
         secure = !env.adminDevMode,
         httpOnly = true
     )
+
+    /** Returns a cookie that will delete the auth token */
+    def deleteCookie = Cookie(
+        name = "auth",
+        value = "",
+        domain = Some(env.adminHost),
+        path = Some("/admin"),
+        ttl = Some(-1)
+    )
 }
 
 /**
@@ -107,6 +116,7 @@ class AuthProvider (
 
             // Pull the user ID out of the cookie
             userID <- extractUserID( cookie.value ) :: OnFail {
+                bundle.response.cookie( session.deleteCookie )
                 next.failure( new Unauthenticated("Invalid auth cookie") )
             }
 
