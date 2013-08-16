@@ -4,7 +4,7 @@ import java.io.File
 import java.util.UUID
 import com.roundeights.scalon.nParser
 import com.roundeights.hasher.Algo
-import com.roundeights.skene.static.AssetLoader
+import com.roundeights.tubeutil.static.AssetLoader
 import scala.concurrent.ExecutionContext.Implicits.global
 
 /**

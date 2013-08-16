@@ -15,6 +15,7 @@ libraryDependencies ++= Seq(
     "com.roundeights" %% "scalon" % "0.1",
     "com.roundeights" %% "foldout" % "0.1",
     "com.roundeights" %% "skene" % "0.1",
+    "com.roundeights" %% "tubeutil" % "0.1",
     "com.roundeights" %% "vfunk" % "0.1",
     "com.roundeights" %% "hasher" % "1.0.0",
     "org.pegdown" % "pegdown" % "1.3.0",
