@@ -1,6 +1,7 @@
 package com.roundeights.shnappy
 
 import com.roundeights.shnappy.component.Parser
+import com.roundeights.tubeutil.DateGen
 import com.roundeights.foldout.{Doc, Documentable}
 import com.roundeights.vfunk.{Validate, Filter, TextField}
 import com.roundeights.scalon._
