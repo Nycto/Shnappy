@@ -4,6 +4,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import com.roundeights.foldout.Documentable
 import com.roundeights.shnappy.component.{Parser, Markdown}
 import com.roundeights.shnappy._
+import com.roundeights.tubeutil.BodyData
 import com.roundeights.skene._
 import com.roundeights.scalon._
 import com.roundeights.attempt._

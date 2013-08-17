@@ -2,6 +2,7 @@ package com.roundeights.shnappy.admin
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.roundeights.skene._
+import com.roundeights.tubeutil.BodyData
 import com.roundeights.scalon._
 import com.roundeights.attempt._
 import java.util.UUID

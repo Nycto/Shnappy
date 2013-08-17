@@ -2,6 +2,7 @@ package com.roundeights.shnappy.admin
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.roundeights.skene._
+import com.roundeights.tubeutil.BodyData
 import com.roundeights.scalon.nObject
 import com.roundeights.shnappy._
 import com.roundeights.shnappy.component.Parser
@@ -25,7 +26,7 @@ class AdminHandler(
         .register[UserParam]( new UserParamProvider(data) )
         .register[SiteParam]( new SiteParamProvider(data) )
         .register[ContentParam]( new ContentParamProvider(data) )
-        .register[BodyData]( new BodyDataProvider )
+        .register[BodyData]( new BodyData.Provider )
         .register[Persona]( new PersonaProvider(
             audience = "%s://%s:%d".format(
                 if ( env.adminDevMode ) "http" else "https",

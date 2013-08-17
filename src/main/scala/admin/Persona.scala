@@ -3,6 +3,7 @@ package com.roundeights.shnappy.admin
 import scala.concurrent.Promise
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.roundeights.skene.{Provider, Bundle, Registry}
+import com.roundeights.tubeutil.BodyData
 import com.roundeights.attempt._
 import com.roundeights.scalon.{nParser, nObject, nTypeMismatch}
 import com.roundeights.vfunk.{Validate, InvalidValueException}
