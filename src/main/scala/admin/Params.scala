@@ -59,9 +59,9 @@ class UserParamProvider( val data: AdminData ) extends Provider[UserParam] {
 
             id <- Params.uuid(next, "user ID", bundle.request.params("userID"))
 
-            userOpt <- data.getUser(id) :: OnFail.alsoFail(next)
-
-            user <- userOpt :: OnFail {
+            user <- TryTo.lift {
+                data.getUser(id) :: OnFail.alsoFail(next)
+            } onFail {
                 next.failure( new NotFound("User does not exist") )
             }
 
@@ -95,9 +95,9 @@ class SiteParamProvider( val data: AdminData ) extends Provider[SiteParam] {
 
             id <- Params.uuid(next, "site ID", bundle.request.params("siteID"))
 
-            opt <- data.getSite(id) :: OnFail.alsoFail(next)
-
-            site <- opt :: OnFail {
+            site <- TryTo.lift {
+                data.getSite(id) :: OnFail.alsoFail(next)
+            } onFail {
                 next.failure( new NotFound("Site does not exist") )
             }
 
@@ -134,9 +134,9 @@ class ContentParamProvider(
                 next, "content ID", bundle.request.params("contentID")
             )
 
-            opt <- data.getContent(id) :: OnFail.alsoFail(next)
-
-            content <- opt :: OnFail {
+            content <- TryTo.lift {
+                data.getContent(id) :: OnFail.alsoFail(next)
+            } onFail {
                 next.failure( new NotFound("Content does not exist") )
             }
 

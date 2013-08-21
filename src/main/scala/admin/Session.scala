@@ -121,10 +121,9 @@ class AuthProvider (
             }
 
             // Fetch the user, if they exist
-            userOpt <- data.getUser( userID ) :: OnFail.alsoFail( next )
-
-            // Extract the user from the option
-            userObj <- userOpt :: OnFail {
+            userObj <- TryTo.lift {
+                data.getUser( userID ) :: OnFail.alsoFail( next )
+            } onFail {
                 next.failure( new Unauthenticated("User does not exist") )
             }
 
