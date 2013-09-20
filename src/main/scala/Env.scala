@@ -30,12 +30,12 @@ object Env {
             couchDB = Left( CouchDB("localhost", 5984, false) ),
             database = "shnappy",
             css = AssetLoader.fromDir(
-                new File(rootDir, "target/resources"), "css"
+                new File(rootDir, "target/resources"), "css", false
             ),
             js = AssetLoader.fromDir(
-                new File(rootDir, "target/resources"), "js"
+                new File(rootDir, "target/resources"), "js", false
             ),
-            assets = AssetLoader.fromDir( rootDir, "assets" ),
+            assets = AssetLoader.fromDir( rootDir, "assets", false ),
             templates = Templater.inDir( new File(rootDir, "templates") ),
             adminHost = "127.0.0.1",
             adminDevMode = true
