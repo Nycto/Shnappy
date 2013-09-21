@@ -95,6 +95,21 @@ class SiteApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
         })
     )
 
+    // Returns the details about a specific site
+    delete("/admin/api/sites/:siteID")(
+        req.use[Admin, SiteParam].in((prereqs, resp, recover) => {
+            recover.fromFuture(
+                // We are only deleting the site info. This is enough to take
+                // it out of commission, but allows data to be recovered if
+                // a site is deleted by mistake
+                data.getSite( prereqs.siteParam.id )
+                    .map( _.map( site => data.delete( site ) ) )
+            ).onSuccess {
+                case _ => resp.json( nObject("status" -> "ok").toString ).done
+            }
+        })
+    )
+
     // Returns all the users that have access to a specific site
     get("/admin/api/sites/:siteID/users")(
         req.use[Admin, SiteParam].in((prereqs, resp, recover) => {
