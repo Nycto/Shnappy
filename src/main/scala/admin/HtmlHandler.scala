@@ -33,9 +33,9 @@ class HtmlHandler (
         })
     )
 
-    get("/admin/sites/:siteID")(
-        req.use[SiteEditor, AdminTemplate].in((prereqs, resp, recover) => {
-            resp.html( prereqs.template("admin/pages/edit") ).done
+    get("/admin/sites").or( get("/admin/sites/*") ) (
+        req.use[AdminTemplate].in((prereqs, resp, recover) => {
+            resp.html( prereqs.template("admin/pages/sites") ).done
         })
     )
 }
