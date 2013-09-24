@@ -4,7 +4,7 @@ import scala.concurrent.Promise
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.roundeights.skene.{Provider, Bundle, Registry}
 import com.roundeights.attempt._
-import com.roundeights.shnappy.Templater
+import com.roundeights.shnappy.{Env, Templater}
 
 /**
  * An admin template builder that comes prebaked with data
@@ -22,6 +22,7 @@ trait AdminTemplate {
  * Builds a Template instance with prebaked admin data
  */
 class AdminTemplateProvider (
+    private val env: Env,
     private val baseTemplate: Templater
 ) extends Provider[AdminTemplate] {
 
@@ -35,7 +36,8 @@ class AdminTemplateProvider (
                 "admin/page", "content",
                 "user" -> bundle.get[Auth].user,
                 "enableLogin" -> true,
-                "email" -> bundle.get[Auth].user.email
+                "email" -> bundle.get[Auth].user.email,
+                "debug" -> env.adminDevMode
             )
         } )
     }

@@ -35,7 +35,7 @@ class AdminHandler(
             ),
             live = !env.adminDevMode
         ))
-        .register[AdminTemplate]( new AdminTemplateProvider(baseTemplate) )
+        .register[AdminTemplate]( new AdminTemplateProvider(env, baseTemplate) )
 
     // Template builder
     val template = baseTemplate.wrap("admin/page", "content")
