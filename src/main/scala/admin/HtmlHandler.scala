@@ -27,7 +27,7 @@ class HtmlHandler (
         })
     )
 
-    get("/admin/users")(
+    get("/admin/users").or( get("/admin/users/*") ) (
         req.use[Admin, AdminTemplate].in((prereqs, resp, recover) => {
             resp.html( prereqs.template("admin/pages/users") ).done
         })
