@@ -6,6 +6,7 @@ import com.roundeights.skene._
 import com.roundeights.tubeutil.BodyData
 import com.roundeights.scalon._
 import com.roundeights.attempt._
+import com.roundeights.vfunk.InvalidValueException
 
 /**
  * Site API handlers
@@ -43,9 +44,8 @@ class SiteApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
                     )
 
                 } onFailMatch {
-                    case err: nException => recover.orRethrow(
-                        new InvalidData( err.getMessage )
-                    )
+                    case err@( _:nException | _:InvalidValueException ) =>
+                        recover.orRethrow( new InvalidData( err ) )
                     case err: Throwable => recover.orRethrow( err )
                 }
 
@@ -86,6 +86,8 @@ class SiteApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
                         })
                         .done
                 } onFailMatch {
+                    case err@( _:nException | _:InvalidValueException ) =>
+                        recover.orRethrow( new InvalidData( err ) )
                     case err: Throwable => recover.orRethrow(err)
                 }
 

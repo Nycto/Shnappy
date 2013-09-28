@@ -1,7 +1,11 @@
 package com.roundeights.shnappy.admin
 
 /** Thrown when an input field is invalid */
-class InvalidData( message: String ) extends Exception( message )
+class InvalidData( message: String ) extends Exception( message ) {
+
+    /** Uses another exception to generate the error for this exception */
+    def this( err: Throwable ) = this( err.getMessage )
+}
 
 /** Thrown when the submitted data is missing a required key */
 class MissingKey(key: String) extends InvalidData(

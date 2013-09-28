@@ -8,6 +8,7 @@ import com.roundeights.tubeutil.BodyData
 import com.roundeights.skene._
 import com.roundeights.scalon._
 import com.roundeights.attempt._
+import com.roundeights.vfunk.InvalidValueException
 import java.util.UUID
 
 /**
@@ -67,9 +68,8 @@ class ContentApiHandler (
                         case _ => throw new InvalidData("Invalid content type")
                     }
                 } onFailMatch {
-                    case err: nException => recover.orRethrow(
-                        new InvalidData( err.getMessage )
-                    )
+                    case err@( _:nException | _:InvalidValueException ) =>
+                        recover.orRethrow( new InvalidData( err ) )
                     case err: Throwable => recover.orRethrow(err)
                 }
 
@@ -122,9 +122,8 @@ class ContentApiHandler (
 
                 }
             } onFailMatch {
-                case err: nException => recover.orRethrow(
-                    new InvalidData( err.getMessage )
-                )
+                case err@( _:nException | _:InvalidValueException ) =>
+                    recover.orRethrow( new InvalidData( err ) )
                 case err: Throwable => recover.orRethrow(err)
             }
 

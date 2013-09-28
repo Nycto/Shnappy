@@ -5,6 +5,7 @@ import com.roundeights.skene._
 import com.roundeights.tubeutil.BodyData
 import com.roundeights.scalon._
 import com.roundeights.attempt._
+import com.roundeights.vfunk.InvalidValueException
 import java.util.UUID
 
 
@@ -27,25 +28,28 @@ class UserApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
         req.use[Admin, BodyData].in((prereqs, resp, recover) => {
             val json = prereqs.json
 
+            def getSiteSet = {
+                if ( json.contains("site") )
+                    Set( json.uuid("site") )
+                else if ( json.contains("sites") )
+                    json.ary("sites").map( _.asUUID ).toSet
+                else
+                    Set[UUID]()
+            }
+
             for {
 
                 user <- TryTo.except {
                     User(
                         json.str("name"),
                         json.str("email"),
-                        if ( json.contains("site") ) {
-                            Set( json.uuid("site") )
-                        }
-                        else {
-                            json.ary("sites").map( _.asUUID ).toSet
-                        },
+                        getSiteSet,
                         json.bool_~?("isAdmin").getOrElse( false )
                     )
 
                 } onFailMatch {
-                    case err: nException => recover.orRethrow(
-                        new InvalidData( err.getMessage )
-                    )
+                    case err@( _:nException | _:InvalidValueException ) =>
+                        recover.orRethrow( new InvalidData( err ) )
                     case err: Throwable => recover.orRethrow( err )
                 }
 
@@ -79,6 +83,8 @@ class UserApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
                         })
                         .done
                 } onFailMatch {
+                    case err@( _:nException | _:InvalidValueException ) =>
+                        recover.orRethrow( new InvalidData( err ) )
                     case err: Throwable => recover.orRethrow(err)
                 }
 
