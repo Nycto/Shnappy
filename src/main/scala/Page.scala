@@ -150,14 +150,18 @@ case class Page (
         "updated" -> DateGen.formatNow
     )
 
-    /** {@inheritDoc} */
-    override def toJson = nObject(
+    /** Returns the JSON for this page without the content */
+    def toJsonLite = nObject(
         "contentID" -> id.toString,
         "siteID" -> siteID.toString,
         "type" -> "page",
         "navSort" -> navSort.map( _.toString ),
         "title" -> title,
-        "slug" -> slug,
+        "slug" -> slug
+    )
+
+    /** {@inheritDoc} */
+    override def toJson = toJsonLite + (
         "content" -> content.foldRight( nList() )( _.serialize :: _ )
     )
 }

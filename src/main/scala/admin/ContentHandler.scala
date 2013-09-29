@@ -28,7 +28,7 @@ class ContentApiHandler (
                 data.getPagesAndLinks( prereqs.siteID )
             ).onSuccess {
                 case content => resp.json( nElement( content.map {
-                    case Left(page) => page.toJson
+                    case Left(page) => page.toJsonLite
                     case Right(link) => link.toJson
                 } ).toString ).done
             }
