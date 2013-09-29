@@ -11,7 +11,7 @@ class HtmlHandler (
     val template: Templater, val req: Registry
 ) extends Skene {
 
-    get("/admin")(
+    get("/admin") {
         req.use[Auth, AdminTemplate].in((prereqs, resp, recover) => {
             if ( prereqs.user.sites.size > 1 || prereqs.user.isAdmin ) {
                 resp.html( prereqs.template("admin/pages/sites") ).done
@@ -25,17 +25,23 @@ class HtmlHandler (
                 )).done
             }
         })
-    )
+    }
 
-    get("/admin/users").or( get("/admin/users/*") ) (
+    get("/admin/users").or.get("/admin/users/*") {
         req.use[Admin, AdminTemplate].in((prereqs, resp, recover) => {
             resp.html( prereqs.template("admin/pages/users") ).done
         })
-    )
+    }
 
-    get("/admin/sites").or( get("/admin/sites/*") ) (
+    get("/admin/sites").or.get("/admin/sites/*") {
         req.use[AdminTemplate].in((prereqs, resp, recover) => {
             resp.html( prereqs.template("admin/pages/sites") ).done
         })
-    )
+    }
+
+    get("/admin/sites/*/content").or.get("/admin/sites/*/content/*") {
+        req.use[AdminTemplate].in((prereqs, resp, recover) => {
+            resp.html( prereqs.template("admin/pages/content") ).done
+        })
+    }
 }
