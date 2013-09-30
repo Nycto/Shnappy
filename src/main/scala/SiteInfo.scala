@@ -127,6 +127,9 @@ case class SiteInfo (
         "updated" -> DateGen.formatNow
     )
 
+    /** Returns a lightweight json version of this instance */
+    def toJsonLite = nObject( "siteID" -> id.toString, "title" -> title )
+
     /** {@inheritDoc} */
     override def toJson = nObject(
         "siteID" -> id.toString, "theme" -> theme, "title" -> title,
