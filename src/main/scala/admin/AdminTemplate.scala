@@ -37,7 +37,8 @@ class AdminTemplateProvider (
                 "user" -> bundle.get[Auth].user,
                 "enableLogin" -> true,
                 "email" -> bundle.get[Auth].user.email,
-                "debug" -> env.adminDevMode
+                "debug" -> env.adminDevMode,
+                "isAdmin" -> bundle.get[Auth].user.isAdmin
             )
         } )
     }
