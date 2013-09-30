@@ -20,7 +20,7 @@ class HtmlHandler (
                 throw new Unauthorized("User can not edit any sites")
             }
             else {
-                resp.moved("/admin/site/%s".format(
+                resp.moved("/admin/sites/%s/content".format(
                     prereqs.user.sites.head.toString
                 )).done
             }
@@ -39,7 +39,7 @@ class HtmlHandler (
         })
     }
 
-    get("/admin/sites/*/content").or.get("/admin/sites/*/content/*") {
+    get("/admin/sites/*/content") {
         req.use[AdminTemplate].in((prereqs, resp, recover) => {
             resp.html( prereqs.template("admin/pages/content") ).done
         })
