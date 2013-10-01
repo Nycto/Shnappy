@@ -14,7 +14,7 @@ class HtmlHandler (
     get("/admin") {
         req.use[Auth, AdminTemplate].in((prereqs, resp, recover) => {
             if ( prereqs.user.sites.size > 1 || prereqs.user.isAdmin ) {
-                resp.html( prereqs.template("admin/pages/sites") ).done
+                resp.html( prereqs.template("admin/sites") ).done
             }
             else if ( prereqs.user.sites.size == 0 ) {
                 throw new Unauthorized("User can not edit any sites")
@@ -29,19 +29,19 @@ class HtmlHandler (
 
     get("/admin/users").or.get("/admin/users/*") {
         req.use[Admin, AdminTemplate].in((prereqs, resp, recover) => {
-            resp.html( prereqs.template("admin/pages/users") ).done
+            resp.html( prereqs.template("admin/users") ).done
         })
     }
 
     get("/admin/sites").or.get("/admin/sites/*") {
         req.use[AdminTemplate].in((prereqs, resp, recover) => {
-            resp.html( prereqs.template("admin/pages/sites") ).done
+            resp.html( prereqs.template("admin/sites") ).done
         })
     }
 
     get("/admin/sites/*/content") {
         req.use[AdminTemplate].in((prereqs, resp, recover) => {
-            resp.html( prereqs.template("admin/pages/content") ).done
+            resp.html( prereqs.template("admin/content") ).done
         })
     }
 }
