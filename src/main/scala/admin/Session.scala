@@ -11,7 +11,13 @@ import com.roundeights.attempt._
 /**
  * Parses and creates session tokens
  */
-class Session ( private val env: Env ) {
+class Session (
+    private val env: Env,
+    private val getTime: () => Long
+) {
+
+    /** Defalt constructor */
+    def this ( env: Env ) = this( env, () => new Date().getTime )
 
     // An alias for the secret key
     private val secret: String = env.secretKey
@@ -19,7 +25,7 @@ class Session ( private val env: Env ) {
     /** Returns the HMAC seed needed for the given time offset */
     private def timeSeed ( offset: Int ): String = {
         assert( offset >= 0 )
-        val time = new Date().getTime / 1000
+        val time = getTime() / 1000
         val seed = time - (time % 60) - (60 * offset)
         Algo.hmac( secret ).sha512( seed.toString ).hex
     }
@@ -29,19 +35,24 @@ class Session ( private val env: Env ) {
         = Algo.hmac( timeSeed(offset) + secret ).sha512( value )
 
     /** Generates a session token for the given user */
-    def token ( user: User ): String
-        = user.id + hmac( user.id.toString, 0 ).hex
+    def token ( email: String, user: User ): String = {
+        val pair = email + "|" + user.id.toString
+        pair + hmac( pair, 0 ).hex
+    }
 
     /** Checks a token to see if it is valid */
-    def checkToken ( token: String ): Option[UUID] = {
-        val uuid = token.take(36)
-        val checksum = Hash( token.drop(36).take(128) )
+    def checkToken ( token: String ): Option[(String, UUID)] = {
+        val email = token.takeWhile( _ != '|' )
+        val dataPair = token.take( email.length + 1 + 36 )
+        val uuid = dataPair.drop(email.length + 1)
 
-        def checkOffset( offset: Int ): Option[UUID] = {
+        val checksum = Hash( token.drop( dataPair.length ).take(128) )
+
+        def checkOffset( offset: Int ): Option[(String, UUID)] = {
             if ( offset > 15 )
                 None
-            else if ( checksum == hmac(uuid, offset) )
-                Some( UUID.fromString(uuid) )
+            else if ( checksum == hmac(dataPair, offset) )
+                Some( email -> UUID.fromString(uuid) )
             else
                 checkOffset( offset + 1 )
         }
@@ -50,9 +61,9 @@ class Session ( private val env: Env ) {
     }
 
     /** Builds a current session cookie for a user */
-    def cookie ( user: User ): Cookie = Cookie(
+    def cookie ( email: String, user: User ): Cookie = Cookie(
         name = "auth",
-        value = token( user ),
+        value = token( email, user ),
         domain = Some(env.adminHost),
         path = Some("/admin"),
         secure = !env.adminDevMode,
@@ -74,6 +85,9 @@ class Session ( private val env: Env ) {
  */
 trait Auth {
 
+    /** The email address a user is authenticated with */
+    def authEmail: String
+
     /** The user from the request */
     def user: User
 
@@ -91,12 +105,14 @@ class AuthProvider (
 ) extends Provider[Auth] {
 
     /** Extracts the user ID from a token */
-    private def extractUserID ( cookie: String ): Option[UUID] = {
+    private def extractUser ( cookie: String ): Option[(String, UUID)] = {
         if ( live ) {
             session.checkToken( cookie )
         }
         else try {
-            Some( UUID.fromString(cookie) )
+            val email = cookie.takeWhile( _ != '|' )
+            val userID = UUID.fromString( cookie.drop( email.length + 1 ) )
+            Some( email -> userID )
         }
         catch {
             case _: IllegalArgumentException => session.checkToken( cookie )
@@ -115,7 +131,7 @@ class AuthProvider (
             }
 
             // Pull the user ID out of the cookie
-            userID <- extractUserID( cookie.value ) :: OnFail {
+            (email, userID) <- extractUser( cookie.value ) :: OnFail {
                 bundle.response.cookie( session.deleteCookie )
                 next.failure( new Unauthenticated("Invalid auth cookie") )
             }
@@ -128,8 +144,11 @@ class AuthProvider (
             }
 
         } {
-            bundle.response.cookie( session.cookie( userObj ) )
-            next.success( new Auth { override val user = userObj } )
+            bundle.response.cookie( session.cookie( email, userObj ) )
+            next.success( new Auth {
+                override val authEmail = email
+                override val user = userObj
+            } )
         }
     }
 }

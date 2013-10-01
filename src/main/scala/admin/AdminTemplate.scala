@@ -36,7 +36,7 @@ class AdminTemplateProvider (
                 "admin/page", "content",
                 "user" -> bundle.get[Auth].user,
                 "enableLogin" -> true,
-                "email" -> bundle.get[Auth].user.email,
+                "email" -> bundle.get[Auth].authEmail,
                 "debug" -> env.adminDevMode,
                 "isAdmin" -> bundle.get[Auth].user.isAdmin
             )

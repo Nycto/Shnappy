@@ -22,6 +22,8 @@ libraryDependencies ++= Seq(
     "com.github.jknack" % "handlebars" % "1.0.0",
     "net.databinder.dispatch" %% "dispatch-core" % "0.10.1",
     "org.slf4j" % "slf4j-simple" % "1.7.2",
-    "javax.servlet" % "javax.servlet-api" % "3.0.1" % "provided"
+    "javax.servlet" % "javax.servlet-api" % "3.0.1" % "provided",
+    "org.specs2" %% "specs2" % "1.14" % "test",
+    "org.mockito" % "mockito-all" % "1.9.5" % "test"
 )
 

@@ -25,7 +25,8 @@ class AuthApiHandler(
                     new Unauthorized("User does not exist")
                 )
                 case Some(user) => {
-                    resp.cookie( session.cookie(user) ).json(ok).done
+                    resp.cookie( session.cookie(prereqs.email, user) )
+                        .json(ok).done
                 }
             }
         }
