@@ -37,7 +37,10 @@ object User {
     )
 
     /** Validates a user's email address */
-    val email = TextField( "email", Filter.trim, Validate.email )
+    val email = TextField( "email",
+        Filter.chain( Filter.trim, Filter.lower ),
+        Validate.email
+    )
 }
 
 /**

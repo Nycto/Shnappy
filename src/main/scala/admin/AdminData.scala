@@ -36,7 +36,9 @@ class AdminData ( private val db: Database, private val parser: Parser ) {
 
     /** Returns a user by their ID */
     def getUserByEmail ( email: String ): Future[Option[User]] = {
-        design.view("usersByEmail").key(email).limit(1).exec
+        design.view("usersByEmail")
+            .key( User.email.process(email).require.value )
+            .limit(1).exec
             .map( _.headOption.map( doc => User(doc) ) )
     }
 
