@@ -53,12 +53,16 @@ trait Templater {
         template: String, as: String, data: Map[String, Any]
     ): Templater = {
         var outer = this
+
         new Templater {
+            override def toString
+                = "Template(%s, %s, %s)".format(template, as, data)
+
             override def apply (
                 innerTemplate: String, innerData: Map[String, Any]
             ): String = outer.apply(
                 template,
-                data + ( as -> outer.apply(innerTemplate, innerData) )
+                data + ( as -> outer.apply(innerTemplate, innerData ++ data) )
             )
         }
     }
