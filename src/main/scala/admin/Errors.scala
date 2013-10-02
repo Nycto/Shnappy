@@ -22,5 +22,5 @@ class Unauthenticated( message: String ) extends Exception(message)
 class Unauthorized( message: String ) extends Exception(message)
 
 /** Thrown when a page isn't loaded via HTTPs */
-class Insecure extends Exception
+class Insecure extends Exception("Insecure request")
 

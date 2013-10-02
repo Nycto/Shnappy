@@ -58,14 +58,12 @@ class AdminHandler(
         // Centralized error handler
         error((req, resp) => customErr(resp).orElse({
 
-            case err: BodyData.InvalidContent =>
-                formatErr( resp.badRequest, err.getMessage )
+            case err@(
+                _:BodyData.InvalidContent | _:InvalidData | _:Insecure
+            ) => formatErr( resp.badRequest, err.getMessage )
 
             case err: NotFound =>
                 formatErr( resp.notFound, err.getMessage )
-
-            case err: InvalidData =>
-                formatErr( resp.badRequest, err.getMessage )
 
             case err: Unauthenticated =>
                 formatErr( resp.unauthorized, "Unauthenticated request" )
@@ -87,8 +85,13 @@ class AdminHandler(
             => formatErr(r.notFound, "404 Not Found") )
 
         // Fail non-secure requests
-        if ( !env.adminDevMode )
-            notSecure(_ => throw new Insecure)
+        if ( !env.adminDevMode ) {
+            notSecure.and.when(
+                _.headers("X-Forwarded-Proto") != Some("https")
+            ) {
+                _ => throw new Insecure
+            }
+        }
     }
 
 
