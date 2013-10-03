@@ -24,3 +24,6 @@ class Unauthorized( message: String ) extends Exception(message)
 /** Thrown when a page isn't loaded via HTTPs */
 class Insecure extends Exception("Insecure request")
 
+/** Thrown when an action is blocked. Error messages are exposed to users */
+class Disallowed( message: String ) extends Exception(message)
+

@@ -34,6 +34,10 @@ class AdminData ( private val db: Database, private val parser: Parser ) {
         }
     }
 
+    /** Returns boolean whether there is any data in this database */
+    def hasData: Future[Boolean]
+        = db.allDocs.limit(1).exec.map( _.totalRows > 0 )
+
     /** Returns a user by their ID */
     def getUserByEmail ( email: String ): Future[Option[User]] = {
         design.view("usersByEmail")

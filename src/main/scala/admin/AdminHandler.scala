@@ -59,7 +59,8 @@ class AdminHandler(
         error((req, resp) => customErr(resp).orElse({
 
             case err@(
-                _:BodyData.InvalidContent | _:InvalidData | _:Insecure
+                _:BodyData.InvalidContent | _:InvalidData |
+                _:Insecure | _:Disallowed
             ) => formatErr( resp.badRequest, err.getMessage )
 
             case err: NotFound =>
@@ -110,6 +111,7 @@ class AdminHandler(
         delegate( new ContentApiHandler(prereq, data, parser) )
         delegate( new SiteApiHandler(prereq, data) )
         delegate( new UserApiHandler(prereq, data) )
+        delegate( new BootstrapApiHandler(env, prereq, data) )
     })
 
 

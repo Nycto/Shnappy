@@ -67,7 +67,8 @@ object Env {
         assets = AssetLoader.fromJar( mainClazz, "assets" ),
         templates = Templater.inJar( mainClazz, "templates" ),
         adminHost = require(settings, "ADMIN_HOST"),
-        secret = settings("SECRET_KEY")
+        secret = settings("SECRET_KEY"),
+        bootstrapKey = settings("BOOTSTRAP_KEY")
     )
 }
 
@@ -83,7 +84,8 @@ class Env (
     val templates: Templater.Finder,
     val adminHost: String,
     val adminDevMode: Boolean = false,
-    secret: Option[String] = None
+    secret: Option[String] = None,
+    val bootstrapKey: Option[String] = None
 ) {
 
     /** {@inheritDoc} */
