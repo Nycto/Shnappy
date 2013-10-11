@@ -124,6 +124,12 @@ class AdminHandler(
 
         /** {@inheritDoc} */
         override def customErr(resp: Response) = {
+
+            // Redirect to the appropriate admin endpoint if the request is
+            // not secure.
+            case _: Insecure
+                => resp.moved( "https://%s/admin".format(env.adminHost) ).done
+
             case err: Unauthenticated => resp.html(
                 baseTemplate
                     .wrap("admin/page", "content", "enableLogin" -> true)
