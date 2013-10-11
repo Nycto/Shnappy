@@ -137,7 +137,7 @@ class AdminHandler(
             ).done
         }
 
-        delegate( new HtmlHandler(template, prereq) )
+        delegate( new HtmlHandler(env, template, prereq) )
     })
 
 }

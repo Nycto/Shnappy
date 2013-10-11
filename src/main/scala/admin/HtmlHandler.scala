@@ -8,8 +8,17 @@ import com.roundeights.shnappy._
  * Page HTML handler
  */
 class HtmlHandler (
-    val template: Templater, val req: Registry
+    val env: Env, val template: Templater, val req: Registry
 ) extends Skene {
+
+    // If the admin panel is requested outside the sanctioned admin host, then
+    // redirect the user to the appropriate url
+    if ( !env.adminDevMode ) {
+        get("/admin").or.get("/admin/*").and.not.host(env.adminHost) {
+            _.moved( "https://%s/admin".format(env.adminHost) ).done
+        }
+    }
+
 
     get("/admin") {
         req.use[Auth, AdminTemplate].in((prereqs, resp, recover) => {
