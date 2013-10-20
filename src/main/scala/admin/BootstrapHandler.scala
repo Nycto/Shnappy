@@ -1,6 +1,7 @@
 package com.roundeights.shnappy.admin
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 import com.roundeights.skene._
 import com.roundeights.tubeutil.BodyData
 import com.roundeights.shnappy._
@@ -81,9 +82,9 @@ class BootstrapApiHandler(
                 }
 
                 // Save the data
-                _ <- recover.fromFuture( data.save(user) )
-                _ <- recover.fromFuture( data.save(site) )
-                _ <- recover.fromFuture( data.save(page) )
+                _ <- recover.fromFuture( Future.sequence( List(
+                    data.save(user), data.save(site), data.save(page)
+                ) ) )
 
             } {
                 resp.json( nObject("status" -> "ok").toString ).done
