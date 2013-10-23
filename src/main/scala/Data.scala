@@ -94,7 +94,7 @@ class LiveData (
         design.view("lastUpdated")
             .limit(1).group.key( siteID.toString ).exec
             .map( _.headOption.map(
-                doc => DateGen.parse( doc.str("updated") )
+                row => DateGen.parse( row.doc.str("updated") )
             ) )
     }
 
@@ -103,7 +103,7 @@ class LiveData (
         design.view("siteInfoByHost").limit(1).key(
             SiteInfo.host.process(host).require.value
         ).exec.map(
-            _.headOption.map( doc =>SiteInfo(doc) )
+            _.headOption.map( row =>SiteInfo(row.doc) )
         )
     }
 
@@ -119,7 +119,7 @@ class LiveData (
             design.view("pagesBySlug")
                 .key( siteInfo.id.toString, slug )
                 .limit(1).exec
-                .map( _.headOption.map(doc => Page(doc, parser)) )
+                .map( _.headOption.map(row => Page(row.doc, parser)) )
         }
 
         /** {@inheritDoc} */

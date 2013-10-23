@@ -2,7 +2,7 @@ package com.roundeights.shnappy
 
 import com.roundeights.shnappy.component.Parser
 import com.roundeights.tubeutil.DateGen
-import com.roundeights.foldout.{Doc, Documentable}
+import com.roundeights.foldout.{Row, Doc, Documentable}
 import com.roundeights.vfunk.{Validate, Filter, TextField}
 import com.roundeights.scalon._
 import java.util.UUID
@@ -42,14 +42,14 @@ object NavLink {
     )
 
     /** Parses a list of links */
-    def parse ( docs: Seq[Doc], parser: Parser ): Seq[NavLink] = {
+    def parse ( docs: Seq[Row], parser: Parser ): Seq[NavLink] = {
         docs.foldRight( List[NavLink]() ) {
-            (doc, accum) => doc.str("type") match {
-                case "page" => Page(doc, parser).navLink match {
+            (row, accum) => row.doc.str("type") match {
+                case "page" => Page(row.doc, parser).navLink match {
                     case Some(link) => link +: accum
                     case None => accum
                 }
-                case "link" => RawLink(doc).link +: accum
+                case "link" => RawLink(row.doc).link +: accum
                 case other => throw new InvalidType(other)
             }
         }

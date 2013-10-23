@@ -43,7 +43,7 @@ class AdminData ( private val db: Database, private val parser: Parser ) {
         design.view("usersByEmail")
             .key( User.email.process(email).require.value )
             .limit(1).exec
-            .map( _.headOption.map( doc => User(doc) ) )
+            .map( _.headOption.map( row => User(row.doc) ) )
     }
 
     /** Returns a user by their ID */
@@ -52,7 +52,7 @@ class AdminData ( private val db: Database, private val parser: Parser ) {
             .startKey( nString(siteID.toString), nNull() )
             .endKey( nString(siteID.toString), nObject() )
             .exec
-            .map( _.map( doc => User(doc) ) )
+            .map( _.map( row => User(row.doc) ) )
     }
 
     /** Returns a user by their ID */
@@ -61,11 +61,11 @@ class AdminData ( private val db: Database, private val parser: Parser ) {
 
     /** Returns all users */
     def getUsers: Future[Seq[User]]
-        = design.view("users").exec.map( _.map( doc => User(doc) ) )
+        = design.view("users").exec.map( _.map( row => User(row.doc) ) )
 
     /** Returns a list of all pages and links for a site */
     def getSites: Future[Seq[SiteInfo]]
-        = design.view("sites").exec.map( _.map( doc => SiteInfo(doc) ) )
+        = design.view("sites").exec.map( _.map( row => SiteInfo(row.doc) ) )
 
     /** Returns details for a specific site */
     def getSite( uuid: UUID ): Future[Option[SiteInfo]]
@@ -76,7 +76,7 @@ class AdminData ( private val db: Database, private val parser: Parser ) {
         design.view("contentBySite")
             .startKey( nString(siteID.toString), nNull() )
             .endKey( nString(siteID.toString), nObject() )
-            .exec.map( _.map( parseContent _ ) )
+            .exec.map( _.map( row => parseContent( row.doc ) ) )
     }
 
     /** Returns a single piece of content */
@@ -89,7 +89,7 @@ class AdminData ( private val db: Database, private val parser: Parser ) {
             .startKey( siteID.toString, nObject() )
             .endKey( siteID.toString, nNull() )
             .limit(1).desc.exec
-            .map( _.headOption.map(doc => Page(doc, parser)) )
+            .map( _.headOption.map(row => Page(row.doc, parser)) )
     }
 
     /** Saves a document */
