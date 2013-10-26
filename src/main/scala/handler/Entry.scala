@@ -6,6 +6,7 @@ import com.roundeights.skene._
 import com.roundeights.shnappy._
 import com.roundeights.shnappy.component.Parser
 import com.roundeights.shnappy.admin.AdminHandler
+import com.roundeights.tubeutil.Templater
 
 /** @see SiteEntry */
 object SiteEntry {
@@ -26,7 +27,7 @@ class SiteEntry ( env: Env ) extends Skene {
     private val data = Data( env, Parser.parser )
 
     /** The root templating engine */
-    private val templates = Templater( env )
+    private val templates = Templater( env.templates )
         .handleList( "js", content => env.js.js( content:_* ) )
         .handleList( "css", content => env.css.css( content:_* ) )
         .handle( "asset", content => env.assets.url(content).getOrElse("") )

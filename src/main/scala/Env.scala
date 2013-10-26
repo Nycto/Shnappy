@@ -5,6 +5,7 @@ import java.util.UUID
 import com.roundeights.scalon.nParser
 import com.roundeights.hasher.Algo
 import com.roundeights.tubeutil.static.AssetLoader
+import com.roundeights.tubeutil.Templater
 import scala.concurrent.ExecutionContext.Implicits.global
 
 /**

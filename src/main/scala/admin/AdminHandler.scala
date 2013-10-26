@@ -2,7 +2,7 @@ package com.roundeights.shnappy.admin
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.roundeights.skene._
-import com.roundeights.tubeutil.BodyData
+import com.roundeights.tubeutil.{BodyData, Templater}
 import com.roundeights.scalon.nObject
 import com.roundeights.shnappy._
 import com.roundeights.shnappy.component.Parser

@@ -1,6 +1,7 @@
 package com.roundeights.shnappy
 
 import scala.concurrent.{Future, ExecutionContext}
+import com.roundeights.tubeutil.Templater
 
 
 /** A renderer is used to translate data into HTML */

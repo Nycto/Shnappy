@@ -4,7 +4,8 @@ import scala.concurrent.Promise
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.roundeights.skene.{Provider, Bundle, Registry}
 import com.roundeights.attempt._
-import com.roundeights.shnappy.{Env, Templater}
+import com.roundeights.shnappy.Env
+import com.roundeights.tubeutil.Templater
 
 /**
  * An admin template builder that comes prebaked with data

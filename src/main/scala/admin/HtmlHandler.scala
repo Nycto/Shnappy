@@ -1,6 +1,7 @@
 package com.roundeights.shnappy.admin
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import com.roundeights.tubeutil.Templater
 import com.roundeights.skene._
 import com.roundeights.shnappy._
 
