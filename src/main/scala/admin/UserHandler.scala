@@ -75,9 +75,7 @@ class UserApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
                     prereqs.json.patch( prereqs.userParam )
                         .patch[String]("name", _ withName _)
                         .patch[String]("email", _ withEmail _)
-                        .patchElem("isAdmin", (user, isAdmin) => {
-                            user.setAdmin( isAdmin.asBool_~ )
-                        })
+                        .patchAs[Boolean]("isAdmin", _.asBool_~, _ setAdmin _)
                         .patch[nList]("sites", (user, sites) => {
                             user.setSites( sites.map(_.asUUID).toSet )
                         })
