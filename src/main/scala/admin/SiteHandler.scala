@@ -44,11 +44,10 @@ class SiteApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
                             json.ary("hosts").map( _.asString ).toSet
                     )
 
-                } onFailMatch {
-                    case err@( _:nException | _:InvalidValueException ) =>
-                        recover.orRethrow( new InvalidData( err ) )
-                    case err: Throwable => recover.orRethrow( err )
-                }
+                } onFailMatch( recover.matcher {
+                    case err@( _:nException | _:InvalidValueException )
+                        => new InvalidData( err )
+                })
 
                 _ <- recover.fromFuture( data.save(site) )
 
@@ -86,11 +85,10 @@ class SiteApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
                             site.withHosts( hosts.map( _.asString ).toSet )
                         })
                         .done
-                } onFailMatch {
-                    case err@( _:nException | _:InvalidValueException ) =>
-                        recover.orRethrow( new InvalidData( err ) )
-                    case err: Throwable => recover.orRethrow(err)
-                }
+                } onFailMatch( recover.matcher {
+                    case err@( _:nException | _:InvalidValueException )
+                        => new InvalidData( err )
+                })
 
                 _ <- recover.fromFuture( data.save(updated) )
 

@@ -47,11 +47,10 @@ class UserApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
                         json.bool_~?("isAdmin").getOrElse( false )
                     )
 
-                } onFailMatch {
-                    case err@( _:nException | _:InvalidValueException ) =>
-                        recover.orRethrow( new InvalidData( err ) )
-                    case err: Throwable => recover.orRethrow( err )
-                }
+                } onFailMatch( recover.matcher {
+                    case err@( _:nException | _:InvalidValueException )
+                        => new InvalidData( err )
+                })
 
                 _ <- recover.fromFuture( data.save(user) )
 
@@ -80,11 +79,10 @@ class UserApiHandler ( val req: Registry, val data: AdminData ) extends Skene {
                             user.setSites( sites.map(_.asUUID).toSet )
                         })
                         .done
-                } onFailMatch {
-                    case err@( _:nException | _:InvalidValueException ) =>
-                        recover.orRethrow( new InvalidData( err ) )
-                    case err: Throwable => recover.orRethrow(err)
-                }
+                } onFailMatch( recover.matcher {
+                    case err@( _:nException | _:InvalidValueException )
+                        => new InvalidData( err )
+                })
 
                 _ <- recover.fromFuture( data.save(updated) )
 

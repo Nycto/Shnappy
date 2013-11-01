@@ -67,11 +67,10 @@ class ContentApiHandler (
                         case "link" => RawLink(prereqs.siteParam, json)
                         case _ => throw new InvalidData("Invalid content type")
                     }
-                } onFailMatch {
-                    case err@( _:nException | _:InvalidValueException ) =>
-                        recover.orRethrow( new InvalidData( err ) )
-                    case err: Throwable => recover.orRethrow(err)
-                }
+                } onFailMatch( recover.matcher {
+                    case err@( _:nException | _:InvalidValueException )
+                        => new InvalidData( err )
+                } )
 
                 _ <- recover.fromFuture( data.save(content) )
 
@@ -121,11 +120,10 @@ class ContentApiHandler (
                     }
 
                 }
-            } onFailMatch {
-                case err@( _:nException | _:InvalidValueException ) =>
-                    recover.orRethrow( new InvalidData( err ) )
-                case err: Throwable => recover.orRethrow(err)
-            }
+            } onFailMatch ( recover.matcher {
+                case err@( _:nException | _:InvalidValueException )
+                    => new InvalidData( err )
+            })
 
             _ <- recover.fromFuture( data.save(updated) )
 

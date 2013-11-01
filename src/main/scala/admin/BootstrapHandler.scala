@@ -34,20 +34,17 @@ class BootstrapApiHandler(
                             "Bootstrap key mismatch"
                         ) )
                     }
-                } onFailMatch {
-                    case err: nException =>
-                        recover.orRethrow( new InvalidData( err ) )
-                    case err: Throwable => recover.orRethrow( err )
-                }
+                } onFailMatch( recover.matcher {
+                    case err: nException => new InvalidData( err )
+                } )
 
                 // Create the user object
                 user <- TryTo.except {
                     User( json.str("name"), json.str("email") )
-                } onFailMatch {
-                    case err@( _:nException | _:InvalidValueException ) =>
-                        recover.orRethrow( new InvalidData( err ) )
-                    case err: Throwable => recover.orRethrow( err )
-                }
+                } onFailMatch( recover.matcher {
+                    case err@( _:nException | _:InvalidValueException )
+                        => new InvalidData( err )
+                } )
 
                 // Create the SiteInfo object
                 site <- TryTo.except {
@@ -55,11 +52,10 @@ class BootstrapApiHandler(
                         "default", json.str("title"),
                         None, Set[String]( env.adminHost )
                     )
-                } onFailMatch {
-                    case err@( _:nException | _:InvalidValueException ) =>
-                        recover.orRethrow( new InvalidData( err ) )
-                    case err: Throwable => recover.orRethrow( err )
-                }
+                } onFailMatch( recover.matcher {
+                    case err@( _:nException | _:InvalidValueException )
+                        => new InvalidData( err )
+                })
 
                 // Create a sample page
                 page <- TryTo.except {
@@ -70,9 +66,7 @@ class BootstrapApiHandler(
                             "========\n\n" +
                             "Your new Shnappy site is ready!"
                         )))
-                } onFailMatch {
-                    case err: Throwable => recover.orRethrow( err )
-                }
+                } onFailMatch ( recover.matchAll )
 
                 // If there is already data, then block attempts to bootstrap
                 _ <- TryTo.liftBool {
