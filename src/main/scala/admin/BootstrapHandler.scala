@@ -40,7 +40,7 @@ class BootstrapApiHandler(
 
                 // Create the user object
                 user <- TryTo.except {
-                    User( json.str("name"), json.str("email") )
+                    User( json.str("name"), json.str("email") ).setAdmin(true)
                 } onFailMatch( recover.matcher {
                     case err@( _:nException | _:InvalidValueException )
                         => new InvalidData( err )
