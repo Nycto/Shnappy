@@ -38,6 +38,7 @@ object Env {
             ),
             assets = AssetLoader.fromDir( rootDir, "assets", false ),
             templates = Templater.inDir( new File(rootDir, "templates") ),
+            secret = "15e293eb0a0a085bb076cec8ff708d815ca43707",
             adminHost = "127.0.0.1",
             adminDevMode = true
         )
@@ -68,7 +69,7 @@ object Env {
         assets = AssetLoader.fromJar( mainClazz, "assets" ),
         templates = Templater.inJar( mainClazz, "templates" ),
         adminHost = require(settings, "ADMIN_HOST"),
-        secret = settings("SECRET_KEY"),
+        secret = require(settings, "SECRET_KEY"),
         bootstrapKey = settings("BOOTSTRAP_KEY")
     )
 }
@@ -85,7 +86,7 @@ class Env (
     val templates: Templater.Finder,
     val adminHost: String,
     val adminDevMode: Boolean = false,
-    secret: Option[String] = None,
+    secret: String,
     val bootstrapKey: Option[String] = None
 ) {
 
@@ -103,9 +104,6 @@ class Env (
     }
 
     /** The secret key for this environment */
-    val secretKey = {
-        val seed = secret.getOrElse( UUID.randomUUID.toString )
-        Algo.pbkdf2( seed, 1000, 512 )( seed )
-    }
+    val secretKey = Algo.pbkdf2( secret, 1000, 512 )( secret )
 }
 
