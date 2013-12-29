@@ -31,10 +31,10 @@ object Env {
             couchDB = Left( CouchDB("localhost", 5984, false) ),
             database = "shnappy",
             css = AssetLoader.fromDir(
-                new File(rootDir, "target/resources"), "css", false
+                new File(rootDir, "target/temp_resources"), "css", false
             ),
             js = AssetLoader.fromDir(
-                new File(rootDir, "target/resources"), "js", false
+                new File(rootDir, "target/temp_resources"), "js", false
             ),
             assets = AssetLoader.fromDir( rootDir, "assets", false ),
             templates = Templater.inDir( new File(rootDir, "templates") ),
