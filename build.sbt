@@ -4,7 +4,7 @@ organization := "com.roundeights"
 
 version := "0.2"
 
-scalaVersion := "2.10.3"
+scalaVersion := "2.11.2"
 
 // append -deprecation to the options passed to the Scala compiler
 scalacOptions ++= Seq("-deprecation", "-feature")
@@ -27,8 +27,8 @@ libraryDependencies ++= Seq(
     "org.pegdown" % "pegdown" % "1.4.1" force,
     "com.github.jknack" % "handlebars" % "1.1.2",
     "net.databinder.dispatch" %% "dispatch-core" % "0.10.1",
-    "org.slf4j" % "slf4j-simple" % "1.7.2",
+    "org.slf4j" % "slf4j-simple" % "1.7.7",
     "javax.servlet" % "javax.servlet-api" % "3.0.1" % "provided",
-    "org.specs2" %% "specs2" % "2.3.4" % "test"
+    "org.specs2" %% "specs2" % "2.3.11" % "test"
 )
 
